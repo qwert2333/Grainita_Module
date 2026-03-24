@@ -1,6 +1,8 @@
 #include "analysis.hh"
+#include "construction.hh"
 #include "G4UnitsTable.hh"
-
+#include "G4RunManager.hh"
+#include "G4UImanager.hh"
 
 MyRunAction::MyRunAction()
 {
@@ -112,43 +114,65 @@ void MyRunAction::BeginOfRunAction(const G4Run* run)
     std::cout << " -------  ENTER in MyRunAction::BeginOfRunAction " << std::endl;
     std::cout << " \n " << std::endl;
 
+    const MyDetectorConstruction* det = static_cast<const MyDetectorConstruction*>(
+        G4RunManager::GetRunManager()->GetUserDetectorConstruction());
+
+    if (!det) {
+        G4Exception("MyRunAction", "NoDetector", FatalException, "DetectorConstruction not set!");
+        return;
+    }
+
+
     G4int runID = run->GetRunID();
     std::stringstream strRunID;
     strRunID << runID;
     G4AnalysisManager *man3 = G4AnalysisManager::Instance();
 
-    // set the location of the ntuples:
-    man3->OpenFile("test_event.root");
 
-/*
     //Create the output Ntuple file
-    G4String rootFileName = "calo_" + fPrimaryGen->GetParticleGun()->GetParticleDefinition()->GetParticleName() + "_";
-    rootFileName += G4BestUnit(fPrimaryGen->GetParticleGun()->GetParticleMomentum(), "Energy"); // GetParticleEnergy()
-    rootFileName += "_Run" + std::to_string(run->GetRunID()) + ".root";
-    while (rootFileName.find(" ") != G4String::npos)
-    {
-        rootFileName.erase(rootFileName.find(" "), 1);
-    }
-    fileRun = TFile::Open(rootFileName, "RECREATE");
 
-*/
+    G4String OutFileName = "GrainitaCalo"; 
+    OutFileName += "_Pitch" + std::to_string((int)det->GetPitchSize()) + "mm_fiber" + std::to_string(det->GetFiberNum());
+    if(fPrimaryGen){
+      OutFileName += "_" + fPrimaryGen->GetParticleGun()->GetParticleDefinition()->GetParticleName();
+      OutFileName += "_" + G4String(G4BestUnit(fPrimaryGen->GetParticleGun()->GetParticleEnergy(), "Energy"));
+    }
+
+    OutFileName += "_Run" + std::to_string(run->GetRunID()) + ".root";
+    while (OutFileName.find(" ") != G4String::npos) {
+      OutFileName.erase(OutFileName.find(" "), 1);
+    }
+    man3->OpenFile(OutFileName);
 }
 
-void MyRunAction::EndOfRunAction(const G4Run*)
+void MyRunAction::EndOfRunAction(const G4Run* run)
 {
 
     std::cout << " \n " << std::endl;
     std::cout << " -------  ENTER in MyRunAction::EndOfRunAction " << std::endl;
     std::cout << " \n " << std::endl;
 
-    //treeEvt->Write();
-    //delete treeEvt;
-    //fileRun->Close();
-    //delete fileRun;
-
     G4AnalysisManager *man4 = G4AnalysisManager::Instance();
     man4->Write();
     man4->CloseFile();
+
+   if (G4RunManager::GetRunManager()->GetRunManagerType() != G4RunManager::workerRM)
+   {
+       G4cout << ">>> The run with RunID  " << run->GetRunID() << " has ended. <<<" << G4endl;
+       G4UImanager *UImanager = G4UImanager::GetUIpointer();
+       UImanager->ApplyCommand(Form("/control/shell ls *Run%i*.root | head -n 1 | sed 's/_Run[^.]*//' > .FileTemp", run->GetRunID()));
+       
+       UImanager->ApplyCommand("/control/shell tr -d '\\n' < .FileTemp > .FileTemp2");
+       UImanager->ApplyCommand("/control/shell mv .FileTemp2 .FileTemp");
+       
+       UImanager->ApplyCommand(Form("/control/shell base=$(cat .FileTemp); hadd -f $base *Run%i_t*.root", run->GetRunID()));
+       
+       UImanager->ApplyCommand(Form("/control/shell rm *Run%i_t*.root", run->GetRunID()));
+       
+       UImanager->ApplyCommand("/control/shell rm .FileTemp");
+
+   }
+
 }
 
 void MyRunAction::ResetEventData()

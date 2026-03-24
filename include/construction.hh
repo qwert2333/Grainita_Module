@@ -29,17 +29,22 @@ public:
 
     //void SetTargetMaterial(G4String materialName); // ✅ Allows dynamic material selection
 
-    void DefineMaterials();
-    void DefineDim();
-    void SetCMOSPosition(G4ThreeVector position);
-
-    void SetRingPosition( G4double position );
-
     G4Material* MakeZnWO4() ;
     G4Material* MakeBGO() ;
     G4Material* MakeFastFloat();
     G4Material* MakeMixture();
 
+    void DefineMaterials();
+    void DefineDim(G4GenericMessenger* fMessenger);
+    void SetCMOSPosition(G4ThreeVector position);
+
+    void SetRingPosition( G4double position );
+    void SetPitchSize( G4double val ) { fiber_pitch = val; }
+    void SetFiberNum( G4int num ) { fiber_nx = num; fiber_ny = num; }
+    void SetZSeg( G4int num ) { nseg_z = num; }
+
+    G4double GetPitchSize() const { return fiber_pitch; }
+    G4int GetFiberNum() const {return fiber_nx; }
 
 private:
     //std::string targetMaterial;  // ✅ Holds the selected material

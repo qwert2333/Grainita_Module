@@ -1,0 +1,32 @@
+# 随机数种子
+/random/setSeeds 123456 789012
+
+# 多线程设置（必须在初始化之前）
+/run/numberOfThreads 4
+
+# 切割值（可选）
+/run/setCut 0.1 mm
+
+# 输出详细程度
+/run/verbose 1
+/event/verbose 0
+/tracking/verbose 0
+
+# Detector construction
+/detector/pitchSize 15 mm
+/detector/fiberNum 13
+/detector/ZSegNum 25
+
+# 初始化几何、物理和用户动作（此时会创建 PrimaryGeneratorAction）
+/run/initialize
+
+# 设置粒子源（必须在初始化之后）
+/gun/particle gamma
+/gun/energy 1 GeV
+/gun/direction 0 0 1
+# /gun/position 0 0 -100 cm   # 根据需要调整
+
+# 运行事例数
+/run/beamOn 10000
+
+

@@ -34,14 +34,12 @@
 
 MyDetectorConstruction::MyDetectorConstruction() : G4VUserDetectorConstruction()
 {
-        // ✅ Define a UI Messenger to allow runtime material selection
+    //Define a UI Messenger to allow runtime material selection
     fMessenger = new G4GenericMessenger(this, "/detector/", "Detector Control");
 
-    DefineDim();
+    DefineDim(fMessenger);
     DefineMaterials();
-    //DefineCommands();
 
-//    CreateCommands();  // ✅ Register UI commands
 }
 
 
@@ -57,33 +55,51 @@ MyDetectorConstruction::~MyDetectorConstruction(){}
 // =================================================================================
 
 
-void MyDetectorConstruction::DefineDim()
+void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
 {
+
     worldSize = 200 * cm;
-    xtal_x = 5*cm;
-    xtal_y = 5*cm;
-    xtal_half_length = 15*cm;
+    xtal_x = 10*cm;
+    xtal_y = 10*cm;
+    xtal_half_length = 42.09*cm;
     fiber_Radius = 0.5*mm;
     fiber_lendth = 2.*xtal_half_length + 1.*cm; //1 cm interface
     cladding_thick = 0.3*mm;
     fiber_pitch = 15*mm;
-    fiber_nx = 6;
-    fiber_ny = 6;
+    fiber_nx = 13;
+    fiber_ny = 13;
     nseg_z = 25;
 
     pmtRadius = 80.*mm;
     pmtThickness = 1.*mm;
 
-    physFiberClad = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
-    physFiberCore = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
-    physCrystal = new G4VPhysicalVolume*[nseg_z];
-    for (G4int i = 0; i < fiber_nx*fiber_ny; i++) {
-        physFiberClad[i] = nullptr;
-        physFiberCore[i] = nullptr;
-    }
-    for(G4int i=0; i<nseg_z; i++){
-      physCrystal[i] = nullptr;
-    }
+
+    fMessenger->DeclareMethodWithUnit("pitchSize", "mm", &MyDetectorConstruction::SetPitchSize)
+        .SetGuidance("Set pitch size of fibers")
+        .SetParameterName("pitch", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethod("fiberNum", &MyDetectorConstruction::SetFiberNum)
+        .SetGuidance("Set number of fibers in module")
+        .SetParameterName("fiberNum", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethod("ZSegNum", &MyDetectorConstruction::SetZSeg)
+        .SetGuidance("Set Z direction segmentation")
+        .SetParameterName("ZSegNum", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+
+    //physFiberClad = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
+    //physFiberCore = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
+    //physCrystal = new G4VPhysicalVolume*[nseg_z];
+    //for (G4int i = 0; i < fiber_nx*fiber_ny; i++) {
+    //    physFiberClad[i] = nullptr;
+    //    physFiberCore[i] = nullptr;
+    //}
+    //for(G4int i=0; i<nseg_z; i++){
+    //  physCrystal[i] = nullptr;
+    //}
 
 }
 
@@ -416,8 +432,8 @@ void MyDetectorConstruction::DefineMaterials()
 
 // --- define the material of the block :
 
-  matCrystal = MakeZnWO4() ;     // pure ZnWO4 crystal
-  //matCrystal = MakeMixture() ;      // mixture ZNWO4 + heavy liquid
+  //matCrystal = MakeZnWO4() ;     // pure ZnWO4 crystal
+  matCrystal = MakeMixture() ;      // mixture ZNWO4 + heavy liquid
 
 // for info : print the X0 of the mixed material :
    G4double X0 =  matCrystal ->GetRadlen();
@@ -435,6 +451,19 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     G4RotationMatrix* m = new G4RotationMatrix();
     m->rotateX(90.*deg);
     return m;}();
+
+    physFiberClad = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
+    physFiberCore = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
+    physCrystal = new G4VPhysicalVolume*[nseg_z];
+    for (G4int i = 0; i < fiber_nx*fiber_ny; i++) {
+        physFiberClad[i] = nullptr;
+        physFiberCore[i] = nullptr;
+    }
+    for(G4int i=0; i<nseg_z; i++){
+      physCrystal[i] = nullptr;
+    }
+
+    //DefineMaterials();
     // Clean up previous geometries
     G4GeometryManager::GetInstance()->OpenGeometry();
     G4PhysicalVolumeStore::GetInstance()->Clean();
