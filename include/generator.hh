@@ -16,12 +16,12 @@ public:
     MyPrimaryGenerator();
     ~MyPrimaryGenerator();
     
-    virtual void GeneratePrimaries(G4Event*);
-    G4ParticleGun *GetParticleGun() const { return fParticleGun; };
+    virtual void GeneratePrimaries(G4Event*) override;
+    G4GeneralParticleSource *GetParticleGun() const { return fParticleGun; };
 
 private:
-    G4ParticleGun *fParticleGun;
-    //G4GeneralParticleSource *fParticleGun;
+    //G4ParticleGun *fParticleGun;
+    G4GeneralParticleSource *fParticleGun;
 };
 
 #endif

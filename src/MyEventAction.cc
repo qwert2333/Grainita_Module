@@ -26,7 +26,7 @@
 //
 
 #include "MyEventAction.hh"
-
+#include "generator.hh"
 #include "G4Event.hh"
 #include "G4TrajectoryContainer.hh"
 #include "G4ios.hh"
@@ -83,11 +83,23 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
   // periodic printing
 
   G4int eventID = event->GetEventID();
-  if (eventID < 100 || eventID % 100 == 0) {
-    G4cout << ">>> Event: " << eventID << G4endl;
-  }
+  //if (eventID < 100 || eventID % 100 == 0) {
+  //  G4cout << ">>> Event: " << eventID << G4endl;
+  //}
 
   // G4cout << fHitCollID[0] << '\t' << fHitCollID[1] << '\t' << fHitCollID[2] << G4endl;
+  // Extract MC info
+  MyPrimaryGenerator* fPrimaryGen = fRunAction->GetGenerator();
+  if(fPrimaryGen){
+    particle = fPrimaryGen->GetParticleGun()->GetParticleDefinition()->GetParticleName();
+    MCtruth_energy = fPrimaryGen->GetParticleGun()->GetParticleEnergy();
+    MCtruth_dir_x = fPrimaryGen->GetParticleGun()->GetParticleMomentumDirection().x();
+    MCtruth_dir_y = fPrimaryGen->GetParticleGun()->GetParticleMomentumDirection().y();
+    MCtruth_dir_z = fPrimaryGen->GetParticleGun()->GetParticleMomentumDirection().z();
+    MCtruth_pos_x = fPrimaryGen->GetParticleGun()->GetParticlePosition().x();
+    MCtruth_pos_y = fPrimaryGen->GetParticleGun()->GetParticlePosition().y();
+    MCtruth_pos_z = fPrimaryGen->GetParticleGun()->GetParticlePosition().z();
+  }
 
   //Get hit info
   G4HCofThisEvent *hitsCE = event->GetHCofThisEvent();
@@ -138,8 +150,16 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
    int idx = 0;
 
    //std::cout << " ==== FILL ntuple  event =  " << eventID << " " << captured << " " << backscattered << " " << traversed << std::endl;
+   //G4cout << " Event #" << eventID << ": Scintillating photon " << Nph_Scint << ", Cherenkov photon " << Nph_Cherenkov << G4endl;
    man5->FillNtupleIColumn( ntupleID, idx, eventID);  idx ++;
+   man5->FillNtupleSColumn( ntupleID, idx, particle);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, MCtruth_energy);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, MCtruth_dir_x);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, MCtruth_dir_y);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, MCtruth_dir_z);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, MCtruth_pos_x);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, MCtruth_pos_y);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, MCtruth_pos_z);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepCrystal);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepFiberCore);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepFiberClad);  idx ++;
@@ -154,7 +174,14 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
 void MyEventAction::ResetEventData()
 {
   eventID = 0;
-  MCtruth_energy = 0.;
+  particle = "";
+  MCtruth_energy = 0;
+  MCtruth_dir_x = 0;
+  MCtruth_dir_y = 0;
+  MCtruth_dir_z = 0;
+  MCtruth_pos_x = 0;
+  MCtruth_pos_y = 0;
+  MCtruth_pos_z = 0;
   EdepCrystal = 0.;
   EdepFiberCore = 0.;
   EdepFiberClad = 0.;

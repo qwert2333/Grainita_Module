@@ -63,7 +63,14 @@ class MyEventAction : public G4UserEventAction
     MyRunAction* fRunAction; 
     G4int fHitCollID[3]; 
     G4int eventID;
+    G4String particle;
     G4double MCtruth_energy;
+    G4double MCtruth_dir_x;
+    G4double MCtruth_dir_y;
+    G4double MCtruth_dir_z;
+    G4double MCtruth_pos_x;
+    G4double MCtruth_pos_y;
+    G4double MCtruth_pos_z;
     G4double EdepCrystal;
     G4double EdepFiberCore;
     G4double EdepFiberClad;

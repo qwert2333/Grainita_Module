@@ -61,7 +61,7 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
     worldSize = 200 * cm;
     xtal_x = 10*cm;
     xtal_y = 10*cm;
-    xtal_half_length = 42.09*cm;
+    xtal_half_length = 21.04*cm;
     fiber_Radius = 0.5*mm;
     fiber_lendth = 2.*xtal_half_length + 1.*cm; //1 cm interface
     cladding_thick = 0.3*mm;
@@ -404,10 +404,19 @@ G4Material* MyDetectorConstruction::MakeMixture()
       40.*cm,
     };
 
+    G4double scintSpectrum[NUM] = {0.2, 1.0, 0.05, 0.0}; // approximate relative shape
+
     G4MaterialPropertiesTable* MPT = new G4MaterialPropertiesTable();
 
     MPT->AddProperty("RINDEX", photonEnergy, refractiveIndex, NUM);
     MPT->AddProperty("ABSLENGTH", photonEnergy, absorption, NUM);
+
+    //Scintillation properties: copy the main component from ZnWO4. 
+    MPT->AddProperty("SCINTILLATIONCOMPONENT1", photonEnergy, scintSpectrum, NUM);
+    MPT->AddConstProperty("SCINTILLATIONYIELD", 10./MeV); // Effective light yield from cosmic ray test
+    MPT->AddConstProperty("SCINTILLATIONTIMECONSTANT1", 24.6*us);
+    MPT->AddConstProperty("SCINTILLATIONYIELD1", 1);
+    MPT->AddConstProperty("RESOLUTIONSCALE", 1.0);
 
     Mixture ->SetMaterialPropertiesTable(MPT);
 

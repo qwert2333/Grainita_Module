@@ -18,7 +18,15 @@ MyRunAction::MyRunAction()
     // event-wise ntuple
     man2->CreateNtuple("eventTree", "eventTree");
     man2->CreateNtupleIColumn("eventID");
+    man2->CreateNtupleSColumn("particle");
     man2->CreateNtupleDColumn("MCtruth_energy");
+    man2->CreateNtupleDColumn("MCtruth_dir_x");
+    man2->CreateNtupleDColumn("MCtruth_dir_y");
+    man2->CreateNtupleDColumn("MCtruth_dir_z");
+    man2->CreateNtupleDColumn("MCtruth_pos_x");
+    man2->CreateNtupleDColumn("MCtruth_pos_y");
+    man2->CreateNtupleDColumn("MCtruth_pos_z");
+
     man2->CreateNtupleDColumn("EdepCrystal");
     man2->CreateNtupleDColumn("EdepFiberCore");
     man2->CreateNtupleDColumn("EdepFiberClad");
@@ -88,7 +96,15 @@ MyRunAction::MyRunAction(MyPrimaryGenerator *PG): fPrimaryGen(PG)
     // event-wise ntuple
     man2->CreateNtuple("eventTree", "eventTree");
     man2->CreateNtupleIColumn("eventID");
+    man2->CreateNtupleSColumn("particle");
     man2->CreateNtupleDColumn("MCtruth_energy");
+    man2->CreateNtupleDColumn("MCtruth_dir_x");
+    man2->CreateNtupleDColumn("MCtruth_dir_y");
+    man2->CreateNtupleDColumn("MCtruth_dir_z");
+    man2->CreateNtupleDColumn("MCtruth_pos_x");
+    man2->CreateNtupleDColumn("MCtruth_pos_y");
+    man2->CreateNtupleDColumn("MCtruth_pos_z");
+
     man2->CreateNtupleDColumn("EdepCrystal");
     man2->CreateNtupleDColumn("EdepFiberCore");
     man2->CreateNtupleDColumn("EdepFiberClad");
@@ -135,7 +151,7 @@ void MyRunAction::BeginOfRunAction(const G4Run* run)
     OutFileName += "_Pitch" + std::to_string((int)det->GetPitchSize()) + "mm_fiber" + std::to_string(det->GetFiberNum());
     if(fPrimaryGen){
       OutFileName += "_" + fPrimaryGen->GetParticleGun()->GetParticleDefinition()->GetParticleName();
-      OutFileName += "_" + G4String(G4BestUnit(fPrimaryGen->GetParticleGun()->GetParticleEnergy(), "Energy"));
+      OutFileName += "_" + G4String(G4BestUnit(fPrimaryGen->GetParticleGun()->GetCurrentSource()->GetEneDist()->GetMonoEnergy(), "Energy"));
     }
 
     OutFileName += "_Run" + std::to_string(run->GetRunID()) + ".root";
@@ -178,7 +194,15 @@ void MyRunAction::EndOfRunAction(const G4Run* run)
 void MyRunAction::ResetEventData()
 {
   eventID = 0;
-  MCtruth_energy = 0.;
+  particle = "";
+  MCtruth_energy = 0;
+  MCtruth_dir_x = 0;
+  MCtruth_dir_y = 0;
+  MCtruth_dir_z = 0;
+  MCtruth_pos_x = 0;
+  MCtruth_pos_y = 0;
+  MCtruth_pos_z = 0;
+
   EdepCrystal = 0.;
   EdepFiberCore = 0.;
   EdepFiberClad = 0.;

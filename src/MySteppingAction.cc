@@ -121,9 +121,6 @@ void MySteppingAction::UserSteppingAction(const G4Step* step)
         if ( volume != 0 ) postVol = volume ->GetName();
 
 
-
-
-
         // if ( particleName == "opticalphoton") {
 
 
