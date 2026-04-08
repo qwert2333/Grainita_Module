@@ -1,3 +1,5 @@
+set(CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
+
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 project(Simulation)
