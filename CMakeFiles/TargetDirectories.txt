@@ -1,4 +1,0 @@
-/afs/cern.ch/work/f/faguo/Grainita/example_Fangyi/CMakeFiles/main.dir
-/afs/cern.ch/work/f/faguo/Grainita/example_Fangyi/CMakeFiles/Simulation.dir
-/afs/cern.ch/work/f/faguo/Grainita/example_Fangyi/CMakeFiles/edit_cache.dir
-/afs/cern.ch/work/f/faguo/Grainita/example_Fangyi/CMakeFiles/rebuild_cache.dir
