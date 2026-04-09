@@ -30,6 +30,7 @@ MyRunAction::MyRunAction()
     man2->CreateNtupleDColumn("EdepCrystal");
     man2->CreateNtupleDColumn("EdepFiberCore");
     man2->CreateNtupleDColumn("EdepFiberClad");
+    man2->CreateNtupleDColumn("EdepCarbonFrame");
     man2->CreateNtupleIColumn("Nph_Cherenkov");
     man2->CreateNtupleIColumn("Nph_Scintillation");
     man2->CreateNtupleIColumn("counter_Cerenkov");
@@ -110,6 +111,7 @@ MyRunAction::MyRunAction(MyPrimaryGenerator *PG): fPrimaryGen(PG)
     man2->CreateNtupleDColumn("EdepCrystal");
     man2->CreateNtupleDColumn("EdepFiberCore");
     man2->CreateNtupleDColumn("EdepFiberClad");
+    man2->CreateNtupleDColumn("EdepCarbonFrame");
     man2->CreateNtupleIColumn("Nph_Cherenkov");
     man2->CreateNtupleIColumn("Nph_Scintillation");
     man2->CreateNtupleIColumn("counter_Cerenkov");
@@ -247,6 +249,7 @@ void MyRunAction::ResetEventData()
   EdepCrystal = 0.;
   EdepFiberCore = 0.;
   EdepFiberClad = 0.;
+  EdepCarbonFrame = 0.;
   Nph_Cherenkov = 0;
   Nph_Scint = 0;
 

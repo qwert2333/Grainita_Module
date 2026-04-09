@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     runManager->SetUserInitialization(new MyDetectorConstruction());
     G4VModularPhysicsList* physicsList = new FTFP_BERT();
     physicsList->RegisterPhysics(new G4StepLimiterPhysics());
-    //physicsList->RegisterPhysics( new G4OpticalPhysics ); //For optical photons
+    physicsList->RegisterPhysics( new G4OpticalPhysics ); //For optical photons
     runManager->SetUserInitialization(physicsList);
     runManager->SetUserInitialization(new MyActionInitialization());
 

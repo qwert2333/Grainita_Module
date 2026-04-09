@@ -60,6 +60,7 @@ void MyEventAction::BeginOfEventAction(const G4Event* event) {
       fHitCollID[0] = sdManager->GetCollectionID("CrystalModule_hits");
       fHitCollID[1] = sdManager->GetCollectionID("FiberCore_hits");
       fHitCollID[2] = sdManager->GetCollectionID("FiberCladding_hits");
+      fHitCollID[3] = sdManager->GetCollectionID("CarbonFrame_hits");
   }
 
   if(!fRunAction)
@@ -102,7 +103,7 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
     G4cout << ">>> Event: " << eventID << G4endl;
   }
 
-  // G4cout << fHitCollID[0] << '\t' << fHitCollID[1] << '\t' << fHitCollID[2] << G4endl;
+  // G4cout << fHitCollID[0] << '\t' << fHitCollID[1] << '\t' << fHitCollID[2] << '\t' << fHitCollID[3]<<G4endl;
   // Extract MC info
   MyPrimaryGenerator* fPrimaryGen = fRunAction->GetGenerator();
   if(fPrimaryGen){
@@ -121,10 +122,12 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
   EcalHitsCollection *CrystalHitCollection = nullptr;
   EcalHitsCollection *FiberCoreHitCollection = nullptr;
   EcalHitsCollection *FiberCladHitCollection = nullptr;
+  EcalHitsCollection *CarbonFrameHitCollection = nullptr;
   if (hitsCE){
     CrystalHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[0]));
     FiberCoreHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[1]));
     FiberCladHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[2]));
+    CarbonFrameHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[3]));
   }
 
   if(CrystalHitCollection){
@@ -159,6 +162,15 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
     }
   }
 
+  if(CarbonFrameHitCollection){
+    size_t n_hit = CarbonFrameHitCollection->entries();
+    //G4cout << " Read Carbon frame Hits: " << n_hit << G4endl;
+    for(size_t i=0; i<n_hit; i++){
+      EdepCarbonFrame += (*CarbonFrameHitCollection)[i]->GetEdep();
+    }
+  }
+  //G4cout<<" Deposite energy: "<<EdepCrystal<<'\t'<<EdepFiberCore<<'\t'<<EdepFiberClad<<'\t'<<EdepCarbonFrame<<G4endl;
+
    // fill the ntuple 
    G4AnalysisManager *man5 = G4AnalysisManager::Instance();
    G4int ntupleID = 0;
@@ -178,6 +190,7 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
    man5->FillNtupleDColumn( ntupleID, idx, EdepCrystal);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepFiberCore);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepFiberClad);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, EdepCarbonFrame);  idx ++;
    man5->FillNtupleIColumn( ntupleID, idx, Nph_Cherenkov); idx ++;
    man5->FillNtupleIColumn( ntupleID, idx, Nph_Scint);  idx ++;
    man5->FillNtupleIColumn( ntupleID, idx, counter_Cerenkov); idx ++;
@@ -202,6 +215,7 @@ void MyEventAction::ResetEventData()
   EdepCrystal = 0.;
   EdepFiberCore = 0.;
   EdepFiberClad = 0.;
+  EdepCarbonFrame = 0.;
   Nph_Cherenkov = 0;
   Nph_Scint = 0;
 

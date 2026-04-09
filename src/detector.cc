@@ -50,12 +50,19 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
     //std::cout << " enter in MySensitiveDetector::ProcessHits  event = " << eventID << " trackID = " << trackID << std::endl;
     //std::cout << " Step particle name: " << particleName << ", process name " << CreatorprocessName << std::endl;
 
-    G4int copyNo = aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(0);
-    //std::cout << "  Step cell ID: "<<copyNo << std::endl;
+//for(int i=0; i<3; i++){
+//std::cout<<aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(i)<<'\t';
+//}
+//std::cout<<std::endl;
+
+    G4int cellID = aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(0);
+    G4int boxID = aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
+    G4int globalID = 1e8*boxID + cellID;
+//std::cout << "  Step E: "<<edep<<", cell ID: "<<cellID << ", boxID "<<boxID<<", global ID "<<globalID<<std::endl;
 
     EcalHit* hit = nullptr;
-    if(cellIDCol.find(copyNo) != cellIDCol.end()){
-      hit = (*fHitCollection)[cellIDCol[copyNo]];
+    if(cellIDCol.find(globalID) != cellIDCol.end()){
+      hit = (*fHitCollection)[cellIDCol[globalID]];
       hit->addEdep(edep);
       if(particleName=="opticalphoton"){
         if(CreatorprocessName=="Cerenkov") hit->addNphChren(1); 
@@ -63,7 +70,7 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
       }
     }
     else{
-      hit = new EcalHit(copyNo);
+      hit = new EcalHit(globalID);
       hit->setEdep(edep);
       if(particleName=="opticalphoton"){
         if(CreatorprocessName=="Cerenkov") hit->addNphChren(1);
@@ -71,7 +78,7 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
       }      
 
       fHitCollection->insert(hit);
-      cellIDCol.insert(std::make_pair(copyNo, fHitIndex));
+      cellIDCol.insert(std::make_pair(globalID, fHitIndex));
       fHitIndex++;
     }
 

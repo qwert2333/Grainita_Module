@@ -46,6 +46,7 @@ private:
     G4double EdepCrystal;
     G4double EdepFiberCore;
     G4double EdepFiberClad;
+    G4double EdepCarbonFrame;
     G4int Nph_Cherenkov;
     G4int Nph_Scint;
     

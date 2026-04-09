@@ -198,8 +198,8 @@ void MySteppingAction::UserSteppingAction(const G4Step* step)
         // ----   Fill step-wise ntuple
         //
 
-        //bool doFillStepwise = false;
-        bool doFillStepwise =  true;       // set it to true for tests only, over a small number of events...
+        bool doFillStepwise = false;
+        //bool doFillStepwise =  true;       // set it to true for tests only, over a small number of events...
 
 
         if ( doFillStepwise) {

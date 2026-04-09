@@ -39,12 +39,14 @@ public:
     void SetCMOSPosition(G4ThreeVector position);
 
     void SetRingPosition( G4double position );
-    void SetPitchSize( G4double val ) { fiber_pitch = val; }
-    void SetFiberNum( G4int num ) { fiber_nx = num; fiber_ny = num; }
+    void SetModuleSize( G4double size ) { xtal_x = size; xtal_y = size; }
+    void SetModuleDepth( G4double depth ) { xtal_half_length = depth/2.; }
+    void SetBoxNum( G4int num ) { nbox_x = num; nbox_y = num; }
+    void SetFiberNum( G4int num ) { nfiber_x = num; nfiber_y = num; }
     void SetZSeg( G4int num ) { nseg_z = num; }
 
-    G4double GetPitchSize() const { return fiber_pitch; }
-    G4int GetFiberNum() const {return fiber_nx; }
+    G4double GetPitchSize() const { return 2.*xtal_x/nbox_x/nfiber_x; }
+    G4int GetFiberNum() const {return nfiber_x; }
 
 private:
     //std::string targetMaterial;  // ✅ Holds the selected material
@@ -57,11 +59,15 @@ private:
 
     //Dimensions
     G4double worldSize;
+
     G4double xtal_x, xtal_y, xtal_half_length;
-    G4double fiber_Radius, fiber_lendth, fiber_pitch;
-    G4int fiber_nx, fiber_ny, nseg_z;
+    G4int nbox_x, nbox_y;
+
+    G4int nfiber_x, nfiber_y, nseg_z;
+    G4double fiber_Radius, fiber_lendth;
     G4double cladding_thick;
-    bool fiber_fullfill = false;
+
+    G4double carbonframe_thick;
 
     G4double pmtRadius;
     G4double pmtThickness;
@@ -70,17 +76,21 @@ private:
     //G4Tubs    *solidSwYMCPsurface;
     //G4Box	*solidCMOSDetector;  
 
-    G4LogicalVolume    *logicWorld;
+    G4LogicalVolume   *logicWorld;
+    G4LogicalVolume   *logicBox;
     G4LogicalVolume   *logicCrystal;
     G4LogicalVolume   *logicCore;
     G4LogicalVolume   *logicClad;
+    G4LogicalVolume   *logicFrame;
     G4LogicalVolume   *logicPMT;
 
 
     G4VPhysicalVolume  *physWorld;
-    G4VPhysicalVolume  **physCrystal;
+    G4VPhysicalVolume  *physBox;
+    //G4VPhysicalVolume  **physCrystal;
     G4VPhysicalVolume  **physFiberClad;
     G4VPhysicalVolume  **physFiberCore;
+    G4VPhysicalVolume  *physFrame;
     G4VPhysicalVolume  *physPMT;
 
     //G4VPhysicalVolume    *physSensor1 ;

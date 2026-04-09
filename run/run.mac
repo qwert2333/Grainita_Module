@@ -9,9 +9,11 @@
 /tracking/verbose 0
 
 # Detector construction
-/detector/pitchSize 10 mm
-/detector/fiberNum 20
-/detector/ZSegNum 25
+/detector/ModuleSize 20 cm
+/detector/ModuleDepth 42.08 cm
+/detector/BoxNum 4
+/detector/fiberNum 14   # pitch size 20*2/4/14 ~ 0.7 cm. 
+/detector/ZSegNum 5
 
 /run/initialize
 
@@ -27,6 +29,6 @@
 
 
 # Run event number
-/run/beamOn 100
+/run/beamOn 10000
 
 

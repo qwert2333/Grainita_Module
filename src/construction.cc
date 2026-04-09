@@ -27,11 +27,6 @@
 
 // Local parameters
 
-//MyDetectorConstruction::MyDetectorConstruction()
-//MyDetectorConstruction::MyDetectorConstruction() : G4VUserDetectorConstruction(), targetMaterial("G4_Pb"), fCMOSPosition(G4ThreeVector(324. *mm, 324.*mm, 0.))
- //MyDetectorConstruction::MyDetectorConstruction() : G4VUserDetectorConstruction(), targetMaterial("G4_Cr"), fCMOSPosition(G4ThreeVector(65.7 *mm, 65.7*mm, 0.))
-// MyDetectorConstruction::MyDetectorConstruction() : G4VUserDetectorConstruction(), targetMaterial("G4_Cr"), fCMOSPosition(G4ThreeVector(1000*mm, 1000*mm, 0.))
-
 MyDetectorConstruction::MyDetectorConstruction() : G4VUserDetectorConstruction()
 {
     //Define a UI Messenger to allow runtime material selection
@@ -62,25 +57,37 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
     xtal_x = 20*cm;
     xtal_y = 20*cm;
     xtal_half_length = 21.04*cm;
+    nbox_x = 4; 
+    nbox_y = 4;
+
+    nfiber_x = 14; 
+    nfiber_y = 14;
+    nseg_z = 25;
     fiber_Radius = 0.5*mm;
     fiber_lendth = 2.*xtal_half_length + 1.*cm; //1 cm interface
     cladding_thick = 0.3*mm;
-    fiber_pitch = 7*mm;
-    fiber_nx = 29;
-    fiber_ny = 29;
-    nseg_z = 25;
+    carbonframe_thick = 0.5*mm;
 
     pmtRadius = 80.*mm;
     pmtThickness = 1.*mm;
 
+    fMessenger->DeclareMethodWithUnit("ModuleSize", "mm", &MyDetectorConstruction::SetModuleSize)
+        .SetGuidance("Set module transverse size")
+        .SetParameterName("moduleSize", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
 
-    fMessenger->DeclareMethodWithUnit("pitchSize", "mm", &MyDetectorConstruction::SetPitchSize)
-        .SetGuidance("Set pitch size of fibers")
-        .SetParameterName("pitch", true)
+    fMessenger->DeclareMethodWithUnit("ModuleDepth", "mm", &MyDetectorConstruction::SetModuleDepth)
+        .SetGuidance("Set module depth")
+        .SetParameterName("moduleDepth", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethod("BoxNum", &MyDetectorConstruction::SetBoxNum)
+        .SetGuidance("Set number of box in the module")
+        .SetParameterName("boxNum", true)
         .SetStates(G4State_PreInit, G4State_Idle);
 
     fMessenger->DeclareMethod("fiberNum", &MyDetectorConstruction::SetFiberNum)
-        .SetGuidance("Set number of fibers in module")
+        .SetGuidance("Set number of fibers in one box")
         .SetParameterName("fiberNum", true)
         .SetStates(G4State_PreInit, G4State_Idle);
 
@@ -89,17 +96,6 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
         .SetParameterName("ZSegNum", true)
         .SetStates(G4State_PreInit, G4State_Idle);
 
-
-    //physFiberClad = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
-    //physFiberCore = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
-    //physCrystal = new G4VPhysicalVolume*[nseg_z];
-    //for (G4int i = 0; i < fiber_nx*fiber_ny; i++) {
-    //    physFiberClad[i] = nullptr;
-    //    physFiberCore[i] = nullptr;
-    //}
-    //for(G4int i=0; i<nseg_z; i++){
-    //  physCrystal[i] = nullptr;
-    //}
 
 }
 
@@ -429,7 +425,7 @@ void MyDetectorConstruction::DefineMaterials()
 {
     G4NistManager *nist = G4NistManager::Instance();
 
-     auto air = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
+    auto air = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
 
     // Define vacuum for the world volume
     matVacuum = nist->FindOrBuildMaterial("G4_Galactic");
@@ -438,15 +434,14 @@ void MyDetectorConstruction::DefineMaterials()
     matWorld = air ;
 
 
-
 // --- define the material of the block :
 
-  //matCrystal = MakeZnWO4() ;     // pure ZnWO4 crystal
-  matCrystal = MakeMixture() ;      // mixture ZNWO4 + heavy liquid
+    //matCrystal = MakeZnWO4() ;     // pure ZnWO4 crystal
+    matCrystal = MakeMixture() ;      // mixture ZNWO4 + heavy liquid
 
 // for info : print the X0 of the mixed material :
-   G4double X0 =  matCrystal ->GetRadlen();
-   std::cout << " ----  X0 of material  = " <<  X0 / cm << " cm" << std::endl;
+    G4double X0 =  matCrystal ->GetRadlen();
+    std::cout << " ----  X0 of material  = " <<  X0 / cm << " cm" << std::endl;
 
 
 }
@@ -461,16 +456,16 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     m->rotateX(90.*deg);
     return m;}();
 
-    physFiberClad = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
-    physFiberCore = new G4VPhysicalVolume*[fiber_nx*fiber_ny];
-    physCrystal = new G4VPhysicalVolume*[nseg_z];
-    for (G4int i = 0; i < fiber_nx*fiber_ny; i++) {
+    physFiberClad = new G4VPhysicalVolume*[nfiber_x*nbox_x*nfiber_y*nbox_y];
+    physFiberCore = new G4VPhysicalVolume*[nfiber_x*nbox_x*nfiber_y*nbox_y];
+    //physCrystal = new G4VPhysicalVolume*[nseg_z];
+    for (G4int i = 0; i < nfiber_x*nbox_x*nfiber_y*nbox_y; i++) {
         physFiberClad[i] = nullptr;
         physFiberCore[i] = nullptr;
     }
-    for(G4int i=0; i<nseg_z; i++){
-      physCrystal[i] = nullptr;
-    }
+    //for(G4int i=0; i<nseg_z; i++){
+    //  physCrystal[i] = nullptr;
+    //}
 
     //DefineMaterials();
     // Clean up previous geometries
@@ -489,6 +484,13 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
 
     // Cladding: PMMA
     G4Material* PMMA = nist->FindOrBuildMaterial("G4_PLEXIGLASS"); // polymethylmethacrylate
+
+    //Carbon fiber frame
+    G4Material* carbonfiber = new G4Material("CarbonFiber", 1.466*g/cm3, 3);
+    G4Element* elO = nist->FindOrBuildElement("O");    
+    carbonfiber->AddElement(elC, 0.7941);
+    carbonfiber->AddElement(elH, 0.0584);
+    carbonfiber->AddElement(elO, 0.1475);
 
     // Optical properties for fiber core (WLS) - absorption in blue, emission in green
     // Copied here, but not needed for now. 
@@ -527,40 +529,62 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     physWorld  = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), logicWorld, "physWorld", 0, false, 0, true);
 
 
+    std::cout<<"--- Create the module: "<<xtal_x*2<<" * "<<xtal_y*2 << " * " << xtal_half_length*2 <<std::endl;
     // ------ Crystal box ------
     //auto solidCrystal = new G4Box("Crystal", xtal_x, xtal_y, xtal_half_length);
-    G4double seg_halfx = xtal_x/fiber_nx;
-    G4double seg_halfy = xtal_y/fiber_ny;
-    G4double seg_halfL = xtal_half_length / nseg_z; 
+    G4double box_halfx = xtal_x/nbox_x; 
+    G4double box_halfy = xtal_y/nbox_y; 
+    G4double box_halfz = xtal_half_length; ; 
+    G4Box* solidBoxOuter = new G4Box("OuterBox", box_halfx, box_halfy, box_halfz);
+    G4Box* solidBoxInner = new G4Box("InnerBox", box_halfx-carbonframe_thick, box_halfy-carbonframe_thick, box_halfz);
+    G4SubtractionSolid* solidBoxFrame = new G4SubtractionSolid("CarbonFrame", solidBoxOuter, solidBoxInner);
+    logicBox = new G4LogicalVolume(solidBoxOuter, matWorld, "logicBox");
+    logicFrame = new G4LogicalVolume(solidBoxFrame, carbonfiber, "logicFrame");
+    logicFrame->SetVisAttributes(new G4VisAttributes(G4Colour(0.4, 0.4, 0.4)));
+    physFrame = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), logicFrame, "physFrame", logicBox, false, 0);
+    std::cout<<"---   Box size: "<<box_halfx*2<<" * "<<box_halfy*2<<" * "<<box_halfz*2<<std::endl;
+    std::cout<<"---   Box number: "<<nbox_x<<" * "<<nbox_y<<std::endl;
+
+
+    G4double cell_halfx = (box_halfx-carbonframe_thick)/nfiber_x;
+    G4double cell_halfy = (box_halfy-carbonframe_thick)/nfiber_y;;
+    G4double cell_halfL = xtal_half_length / nseg_z; 
     std::vector<G4ThreeVector> holePositions;
 
-    G4Box* solidBox = new G4Box("cell", seg_halfx, seg_halfy, seg_halfL);
-    G4Tubs* solidHole = new G4Tubs("Hole", 0., fiber_Radius+cladding_thick, fiber_lendth/2., 0., 360.*deg);
+    G4Box* solidCrysCell = new G4Box("cell", cell_halfx, cell_halfy, cell_halfL);
+    G4Tubs* solidHole = new G4Tubs("Hole", 0., fiber_Radius+cladding_thick, cell_halfL, 0., 360.*deg);
     // Subtract the hole
-    G4SubtractionSolid* solidWithHole = new G4SubtractionSolid("cellWithHole", solidBox, solidHole, 0, G4ThreeVector(0,0,0)); 
+    G4SubtractionSolid* solidWithHole = new G4SubtractionSolid("cellWithHole", solidCrysCell, solidHole, 0, G4ThreeVector(0,0,0)); 
 
     // Create the logic volume cell
     logicCrystal = new G4LogicalVolume(solidWithHole, matCrystal, "cellWithHole");
+    logicCrystal->SetVisAttributes(new G4VisAttributes(G4Colour(0, 0.75, 1.0)));
+
 
     // Loop place the cubes
-    G4double x0 = - ( (fiber_nx-1)*fiber_pitch ) / 2.;
-    G4double y0 = - ( (fiber_ny-1)*fiber_pitch ) / 2.;
-    G4double z0 = - ( (nseg_z-1)*seg_halfL*2 ) / 2.;
+    G4double fiber_pitch_x = 2*(box_halfx - carbonframe_thick)/nfiber_x;
+    G4double fiber_pitch_y = 2*(box_halfy - carbonframe_thick)/nfiber_y;
+    G4double x0 = - ( (nfiber_x-1)*fiber_pitch_x ) / 2.;
+    G4double y0 = - ( (nfiber_y-1)*fiber_pitch_y ) / 2.;
+    G4double z0 = - ( (nseg_z-1)*cell_halfL*2 ) / 2.;
+    std::cout<<"---   In each box: fiber (cell) number "<<nfiber_x<<" * "<<nfiber_y<<std::endl;
 
-    auto cellMax = std::to_string(std::max(std::max(fiber_nx, fiber_ny), nseg_z));
+    auto cellMax = std::to_string(std::max(std::max(nfiber_x, nfiber_y), nseg_z));
     G4int cellMaxCount = pow(10, cellMax.length());
     G4int copyNo = 0; 
+
     for(int iz=0; iz<nseg_z; iz++){
-      G4double zPos = z0 + iz * seg_halfL*2;
-      for(int iy=0; iy<fiber_ny; iy++){
-        G4double yPos = y0 + iy * seg_halfy*2;
+      G4double zPos = z0 + iz * cell_halfL*2;
+      for(int iy=0; iy<nfiber_y; iy++){
+        G4double yPos = y0 + iy * cell_halfy*2;
         copyNo = (iz + 1) * cellMaxCount * cellMaxCount + (iy + 1) * cellMaxCount;
-        for(int ix=0; ix<fiber_nx; ix++){
+        for(int ix=0; ix<nfiber_x; ix++){
           copyNo++;
-          G4double xPos = x0 + ix * seg_halfx*2;
+          G4double xPos = x0 + ix * cell_halfx*2;
           G4ThreeVector position(xPos, yPos, zPos);
+//std::cout<<"      cell position: "<<xPos<<", "<<yPos<<", "<<zPos<<", copyNo "<<copyNo<<std::endl;
           new G4PVPlacement(nullptr, position, logicCrystal,
-                            "CrystalVoxel", logicWorld, false, copyNo);
+                            "CrystalVoxel", logicBox, false, copyNo);
           if(iz==0){
             G4ThreeVector position_cent(xPos, yPos, 0);
             holePositions.push_back(position_cent);
@@ -578,12 +602,27 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     for (size_t i=0;i<holePositions.size();++i) {
       G4ThreeVector pos = holePositions[i];
       // place cladding then core (so core is inner volume)
-      physFiberClad[i] = new G4PVPlacement(nullptr, pos, logicClad, "FiberClad_" + std::to_string(i), logicWorld, false, i);
-      physFiberCore[i] = new G4PVPlacement(nullptr, pos, logicCore, "FiberCore_" + std::to_string(i), logicWorld, false, i);
+      physFiberClad[i] = new G4PVPlacement(nullptr, pos, logicClad, "FiberClad_" + std::to_string(i), logicBox, false, 0);
+      physFiberCore[i] = new G4PVPlacement(nullptr, pos, logicCore, "FiberCore_" + std::to_string(i), logicBox, false, 0);
     }
 
     logicCore->SetVisAttributes(new G4VisAttributes(G4Colour(1.0,1.0,0.0)));
     logicClad->SetVisAttributes(new G4VisAttributes(G4Colour(0.8,0.8,0.8)));
+
+
+    //Place Boxes
+    x0 = - ( (nbox_x-1)*box_halfx*2 ) / 2.;
+    y0 = - ( (nbox_y-1)*box_halfy*2 ) / 2.;
+    G4int boxCopyNo = 0;
+    for(int iy=0; iy<nbox_y; iy++){
+      G4double yPos = y0 + iy * box_halfy*2;
+      for(int ix=0; ix<nbox_x; ix++){
+        boxCopyNo++;
+        G4double xPos = x0 + ix * box_halfx*2;
+        G4ThreeVector position(xPos, yPos, 0);
+        physFrame = new G4PVPlacement(0, position, logicBox, "physFrame", logicWorld, false, boxCopyNo);
+      }
+    }
 
     // Optical surface of fibers
     // Not needed now
@@ -645,6 +684,10 @@ void MyDetectorConstruction::ConstructSDandField()
     MySensitiveDetector *sensDet_fiberclad = new MySensitiveDetector("FiberCladding");
     sdManager->AddNewDetector(sensDet_fiberclad);
     logicClad->SetSensitiveDetector(sensDet_fiberclad);    
+
+    MySensitiveDetector *sensDet_carbonframe = new MySensitiveDetector("CarbonFrame");
+    sdManager->AddNewDetector(sensDet_carbonframe);
+    logicFrame->SetSensitiveDetector(sensDet_carbonframe);
 
 }
 
