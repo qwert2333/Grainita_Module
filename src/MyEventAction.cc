@@ -140,10 +140,19 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
       Nph_Scint += (*CrystalHitCollection)[i]->GetNphScint();
 
       fRunAction->Fill_vecCellID( (*CrystalHitCollection)[i]->GetCellID() );
-      fRunAction->Fill_vecEdep( (*CrystalHitCollection)[i]->GetEdep() );
+      fRunAction->Fill_vecEdep(   (*CrystalHitCollection)[i]->GetEdep() );
       fRunAction->Fill_vecNChren( (*CrystalHitCollection)[i]->GetNphChren() );
       fRunAction->Fill_vecNScint( (*CrystalHitCollection)[i]->GetNphScint() );
     }
+    //for(size_t i=0; i<n_hit; i++){
+    //  for(int istep = 0; istep<(*CrystalHitCollection)[i]->GetStepSize(); istep++){
+    //    G4ThreeVector pos = (*CrystalHitCollection)[i]->GetStepPos(istep);
+    //    G4double Edep = (*CrystalHitCollection)[i]->GetStepE(istep);
+    //    fRunAction->Fill_stepPos( pos.x(), pos.y(), pos.z() );
+    //    fRunAction->Fill_stepEn( Edep );
+    //  }
+    //}
+
   }
 
   if(FiberCoreHitCollection){

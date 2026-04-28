@@ -374,8 +374,8 @@ G4Material* MyDetectorConstruction::MakeMixture()
 
     G4Material* Mixture = new G4Material("Mixture", 5.72*g/cm3, 2);
     // the fractions corresponding to the prototype :
-    Mixture -> AddMaterial( grains, 0.576 );
-    Mixture -> AddMaterial( liquid, 0.424 );
+    Mixture -> AddMaterial( grains, 0.7923 );
+    Mixture -> AddMaterial( liquid, 0.2077 );
 
     const G4int NUM = 4;
 
@@ -437,6 +437,7 @@ void MyDetectorConstruction::DefineMaterials()
 // --- define the material of the block :
 
     //matCrystal = MakeZnWO4() ;     // pure ZnWO4 crystal
+    //matCrystal = MakeFastFloat() ;     // pure liquid
     matCrystal = MakeMixture() ;      // mixture ZNWO4 + heavy liquid
 
 // for info : print the X0 of the mixed material :

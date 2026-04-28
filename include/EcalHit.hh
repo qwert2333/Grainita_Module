@@ -10,8 +10,8 @@
 class EcalHit : public G4VHit {
 public:
 
-    EcalHit() : fCellID(0), fEdep(0.), fNph_scint(0), fNph_cherenkov(0) {}
-    EcalHit(G4int cellID) : fCellID(cellID), fEdep(0), fNph_scint(0), fNph_cherenkov(0) {}
+    EcalHit() : fCellID(0), fEdep(0.), fNph_scint(0), fNph_cherenkov(0) { step_x.clear(); step_y.clear(); step_z.clear(); step_E.clear(); }
+    EcalHit(G4int cellID) : fCellID(cellID), fEdep(0), fNph_scint(0), fNph_cherenkov(0) { step_x.clear(); step_y.clear(); step_z.clear(); step_E.clear(); }
     virtual ~EcalHit() = default;
 
     void setCellID(G4int _id) { fCellID = _id; }
@@ -29,12 +29,29 @@ public:
     void addNphChren(G4int _nph) { fNph_cherenkov += _nph; }
     G4double GetNphChren() const { return fNph_cherenkov; }
 
+    void addStep(G4double _posx, G4double _posy, G4double _posz, G4double _en){
+      step_x.push_back(_posx);
+      step_y.push_back(_posy);
+      step_z.push_back(_posz);
+      step_E.push_back(_en);
+    }
+    int GetStepSize() const { return step_E.size(); }
+    G4ThreeVector GetStepPos( size_t i ) const {
+      if(i>=step_x.size()) return G4ThreeVector(0., 0., 0.);
+      G4ThreeVector pos(step_x[i], step_y[i], step_z[i]);
+      return pos;
+    }
+    G4double GetStepE(size_t i) const { return i<step_E.size() ? step_E[i] : -999; }
+
 private:
     G4int fCellID;     
     G4double fEdep;
     G4int fNph_scint;
     G4int fNph_cherenkov;
-    //std::vector<>
+    std::vector<G4double> step_x;
+    std::vector<G4double> step_y;
+    std::vector<G4double> step_z;
+    std::vector<G4double> step_E;
 
 };
 

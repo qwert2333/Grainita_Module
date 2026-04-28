@@ -31,6 +31,7 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
 
     G4int eventID   = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
     G4double edep = aStep->GetTotalEnergyDeposit(); 
+    G4ThreeVector pos = (aStep->GetPreStepPoint()->GetPosition()/mm + aStep->GetPostStepPoint()->GetPosition()/mm ) * 0.5;
     G4Track *aTrack = aStep->GetTrack(); 
     G4String particleName = aTrack->GetParticleDefinition()->GetParticleName();
 
@@ -50,15 +51,17 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
     //std::cout << " enter in MySensitiveDetector::ProcessHits  event = " << eventID << " trackID = " << trackID << std::endl;
     //std::cout << " Step particle name: " << particleName << ", process name " << CreatorprocessName << std::endl;
 
-//for(int i=0; i<3; i++){
-//std::cout<<aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(i)<<'\t';
-//}
-//std::cout<<std::endl;
 
-    G4int cellID = aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(0);
-    G4int boxID = aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
-    G4int globalID = 1e8*boxID + cellID;
-//std::cout << "  Step E: "<<edep<<", cell ID: "<<cellID << ", boxID "<<boxID<<", global ID "<<globalID<<std::endl;
+    //G4int cellID = aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(0);
+    //G4int boxID = aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
+    //G4int globalID = 1e8*boxID + cellID;
+    ////std::cout << "  Step E: "<<edep<<", cell ID: "<<cellID << ", boxID "<<boxID<<", global ID "<<globalID<<std::endl;
+
+    // Mannually define the hit and cellID from global position 
+    // WARNING: hard-coded to 1 mm x-y segmentation here!
+    G4int idx = (int)(pos.x()+500.);
+    G4int idy = (int)(pos.y()+500.);
+    G4int globalID = 1000*idy + idx; 
 
     EcalHit* hit = nullptr;
     if(cellIDCol.find(globalID) != cellIDCol.end()){
@@ -68,6 +71,7 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
         if(CreatorprocessName=="Cerenkov") hit->addNphChren(1); 
         else{ hit->addNphScint(1);}
       }
+      //hit->addStep(pos.x(), pos.y(), pos.z(), edep );
     }
     else{
       hit = new EcalHit(globalID);
@@ -76,6 +80,7 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
         if(CreatorprocessName=="Cerenkov") hit->addNphChren(1);
         else{ hit->addNphScint(1);}
       }      
+      //hit->addStep(pos.x(), pos.y(), pos.z(), edep );
 
       fHitCollection->insert(hit);
       cellIDCol.insert(std::make_pair(globalID, fHitIndex));
