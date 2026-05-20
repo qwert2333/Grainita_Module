@@ -59,8 +59,9 @@ void MyEventAction::BeginOfEventAction(const G4Event* event) {
       auto sdManager = G4SDManager::GetSDMpointer();
       fHitCollID[0] = sdManager->GetCollectionID("CrystalModule_hits");
       fHitCollID[1] = sdManager->GetCollectionID("FiberCore_hits");
-      fHitCollID[2] = sdManager->GetCollectionID("FiberCladding_hits");
-      fHitCollID[3] = sdManager->GetCollectionID("CarbonFrame_hits");
+      fHitCollID[2] = sdManager->GetCollectionID("FiberCladdingL1_hits");
+      fHitCollID[3] = sdManager->GetCollectionID("FiberCladdingL2_hits");
+      fHitCollID[4] = sdManager->GetCollectionID("CarbonFrame_hits");
   }
 
   if(!fRunAction)
@@ -121,13 +122,15 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
   G4HCofThisEvent *hitsCE = event->GetHCofThisEvent();
   EcalHitsCollection *CrystalHitCollection = nullptr;
   EcalHitsCollection *FiberCoreHitCollection = nullptr;
-  EcalHitsCollection *FiberCladHitCollection = nullptr;
+  EcalHitsCollection *FiberCladL1HitCollection = nullptr;
+  EcalHitsCollection *FiberCladL2HitCollection = nullptr;
   EcalHitsCollection *CarbonFrameHitCollection = nullptr;
   if (hitsCE){
     CrystalHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[0]));
     FiberCoreHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[1]));
-    FiberCladHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[2]));
-    CarbonFrameHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[3]));
+    FiberCladL1HitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[2]));
+    FiberCladL2HitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[3]));
+    CarbonFrameHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[4]));
   }
 
   if(CrystalHitCollection){
@@ -144,14 +147,14 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
       fRunAction->Fill_vecNChren( (*CrystalHitCollection)[i]->GetNphChren() );
       fRunAction->Fill_vecNScint( (*CrystalHitCollection)[i]->GetNphScint() );
     }
-    //for(size_t i=0; i<n_hit; i++){
-    //  for(int istep = 0; istep<(*CrystalHitCollection)[i]->GetStepSize(); istep++){
-    //    G4ThreeVector pos = (*CrystalHitCollection)[i]->GetStepPos(istep);
-    //    G4double Edep = (*CrystalHitCollection)[i]->GetStepE(istep);
-    //    fRunAction->Fill_stepPos( pos.x(), pos.y(), pos.z() );
-    //    fRunAction->Fill_stepEn( Edep );
-    //  }
-    //}
+    for(size_t i=0; i<n_hit; i++){
+      for(int istep = 0; istep<(*CrystalHitCollection)[i]->GetStepSize(); istep++){
+        G4ThreeVector pos = (*CrystalHitCollection)[i]->GetStepPos(istep);
+        G4double Edep = (*CrystalHitCollection)[i]->GetStepE(istep);
+        fRunAction->Fill_stepPos( pos.x(), pos.y(), pos.z() );
+        fRunAction->Fill_stepEn( Edep );
+      }
+    }
 
   }
 
@@ -163,11 +166,18 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
     }
   }
 
-  if(FiberCladHitCollection){
-    size_t n_hit = FiberCladHitCollection->entries();
+  if(FiberCladL1HitCollection){
+    size_t n_hit = FiberCladL1HitCollection->entries();
     //G4cout << " Read Fiber Cladding Hits: " << n_hit << G4endl;
     for(size_t i=0; i<n_hit; i++){
-      EdepFiberClad += (*FiberCladHitCollection)[i]->GetEdep();
+      EdepFiberClad += (*FiberCladL1HitCollection)[i]->GetEdep();
+    }
+  }
+  if(FiberCladL2HitCollection){
+    size_t n_hit = FiberCladL2HitCollection->entries();
+    //G4cout << " Read Fiber Cladding Hits: " << n_hit << G4endl;
+    for(size_t i=0; i<n_hit; i++){
+      EdepFiberClad += (*FiberCladL2HitCollection)[i]->GetEdep();
     }
   }
 

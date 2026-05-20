@@ -9,26 +9,26 @@
 /tracking/verbose 0
 
 # Detector construction
-/detector/ModuleSize 20 cm
-/detector/ModuleDepth 42.08 cm
-/detector/BoxNum 4
-/detector/fiberNum 14   # pitch size 20*2/4/14 ~ 0.7 cm. 
-/detector/ZSegNum 5
+/detector/ModuleSize 8.45 cm
+/detector/ModuleDepth 40 cm
+/detector/BoxNum 1
+/detector/fiberNum 24   # pitch size 20*2/4/14 ~ 0.7 cm. 
+/detector/ZSegNum 1
 
 /run/initialize
 
 # Set particle gun
-/gps/particle gamma
-/gps/energy 1 GeV
+/gps/particle mu-
+/gps/energy 10 GeV
 /gps/direction 0 0 1
 /gps/pos/type Plane
 /gps/pos/shape Square
 /gps/pos/centre 0 0 -50 cm
-/gps/pos/halfx 5 cm
-/gps/pos/halfy 5 cm
+/gps/pos/halfx 2. cm
+/gps/pos/halfy 2. cm
 
 
 # Run event number
-/run/beamOn 10000
+/run/beamOn 1000
 
 

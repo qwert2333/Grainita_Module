@@ -21,6 +21,8 @@ private:
     EcalHitsCollection *fHitCollection; 
     G4int fHitCID; 
     G4int fHitIndex;
+    G4double fAttLength; 
+    G4double fpitch; 
     std::map<G4int, G4int> cellIDCol; // <cellID, hit index>
     
 };

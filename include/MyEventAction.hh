@@ -46,11 +46,11 @@ class MyEventAction : public G4UserEventAction
   public:
     MyEventAction() : fRunAction(nullptr) { 
       ResetEventData(); 
-      for (int i = 0; i < 4; ++i) fHitCollID[i] = -1;
+      for (int i = 0; i < 5; ++i) fHitCollID[i] = -1;
     }
     MyEventAction(MyRunAction* runaction ) : fRunAction(runaction) { 
       ResetEventData(); 
-      for (int i = 0; i < 4; ++i) fHitCollID[i] = -1;
+      for (int i = 0; i < 5; ++i) fHitCollID[i] = -1;
     }
     ~MyEventAction() override = default;
 
@@ -67,7 +67,7 @@ class MyEventAction : public G4UserEventAction
 
     private :
     MyRunAction* fRunAction; 
-    G4int fHitCollID[4]; 
+    G4int fHitCollID[5]; 
     G4int eventID;
     G4String particle;
     G4double MCtruth_energy;

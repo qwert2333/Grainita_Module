@@ -65,7 +65,8 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
     nseg_z = 25;
     fiber_Radius = 0.5*mm;
     fiber_lendth = 2.*xtal_half_length + 1.*cm; //1 cm interface
-    cladding_thick = 0.3*mm;
+    claddingL1_thick = 0.01*mm;
+    claddingL2_thick = 0.01*mm;
     carbonframe_thick = 0.5*mm;
 
     pmtRadius = 80.*mm;
@@ -95,7 +96,6 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
         .SetGuidance("Set Z direction segmentation")
         .SetParameterName("ZSegNum", true)
         .SetStates(G4State_PreInit, G4State_Idle);
-
 
 }
 
@@ -457,11 +457,13 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     m->rotateX(90.*deg);
     return m;}();
 
-    physFiberClad = new G4VPhysicalVolume*[nfiber_x*nbox_x*nfiber_y*nbox_y];
+    physFiberCladL1 = new G4VPhysicalVolume*[nfiber_x*nbox_x*nfiber_y*nbox_y];
+    physFiberCladL2 = new G4VPhysicalVolume*[nfiber_x*nbox_x*nfiber_y*nbox_y];
     physFiberCore = new G4VPhysicalVolume*[nfiber_x*nbox_x*nfiber_y*nbox_y];
     //physCrystal = new G4VPhysicalVolume*[nseg_z];
     for (G4int i = 0; i < nfiber_x*nbox_x*nfiber_y*nbox_y; i++) {
-        physFiberClad[i] = nullptr;
+        physFiberCladL1[i] = nullptr;
+        physFiberCladL2[i] = nullptr;
         physFiberCore[i] = nullptr;
     }
     //for(G4int i=0; i<nseg_z; i++){
@@ -483,12 +485,18 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     polystyrene->AddElement(elC, 8);
     polystyrene->AddElement(elH, 8);
 
-    // Cladding: PMMA
+    // Cladding: PMMA and Fluorinated Polymer (FP)
     G4Material* PMMA = nist->FindOrBuildMaterial("G4_PLEXIGLASS"); // polymethylmethacrylate
+    G4Material* FP = new G4Material("FP", 1.43*g/cm3, 4);
+    G4Element* elO = nist->FindOrBuildElement("O");
+    G4Element* elF = nist->FindOrBuildElement("F");
+    FP->AddElement(elC, 6);
+    FP->AddElement(elH, 7);
+    FP->AddElement(elF, 3); 
+    FP->AddElement(elO, 2); 
 
     //Carbon fiber frame
     G4Material* carbonfiber = new G4Material("CarbonFiber", 1.466*g/cm3, 3);
-    G4Element* elO = nist->FindOrBuildElement("O");    
     carbonfiber->AddElement(elC, 0.7941);
     carbonfiber->AddElement(elH, 0.0584);
     carbonfiber->AddElement(elO, 0.1475);
@@ -553,7 +561,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     std::vector<G4ThreeVector> holePositions;
 
     G4Box* solidCrysCell = new G4Box("cell", cell_halfx, cell_halfy, cell_halfL);
-    G4Tubs* solidHole = new G4Tubs("Hole", 0., fiber_Radius+cladding_thick, cell_halfL, 0., 360.*deg);
+    G4Tubs* solidHole = new G4Tubs("Hole", 0., fiber_Radius+claddingL1_thick+claddingL2_thick, cell_halfL, 0., 360.*deg);
     // Subtract the hole
     G4SubtractionSolid* solidWithHole = new G4SubtractionSolid("cellWithHole", solidCrysCell, solidHole, 0, G4ThreeVector(0,0,0)); 
 
@@ -583,7 +591,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
           copyNo++;
           G4double xPos = x0 + ix * cell_halfx*2;
           G4ThreeVector position(xPos, yPos, zPos);
-//std::cout<<"      cell position: "<<xPos<<", "<<yPos<<", "<<zPos<<", copyNo "<<copyNo<<std::endl;
+// std::cout<<"      cell position: "<<xPos<<", "<<yPos<<", "<<zPos<<", copyNo "<<copyNo<<std::endl;
           new G4PVPlacement(nullptr, position, logicCrystal,
                             "CrystalVoxel", logicBox, false, copyNo);
           if(iz==0){
@@ -596,19 +604,24 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
 
     // ------ Implement the fibers in holes ------
     auto solidCore = new G4Tubs("Core", 0., fiber_Radius, fiber_lendth/2., 0.*deg, 360.*deg);
-    auto solidClad = new G4Tubs("Clad", fiber_Radius, fiber_Radius + cladding_thick, fiber_lendth/2., 0.*deg, 360.*deg);
+    auto solidCladL1 = new G4Tubs("CladL1", fiber_Radius, fiber_Radius + claddingL1_thick, fiber_lendth/2., 0.*deg, 360.*deg);
+    auto solidCladL2 = new G4Tubs("CladL2", fiber_Radius + claddingL1_thick, fiber_Radius + claddingL1_thick + claddingL2_thick, fiber_lendth/2., 0.*deg, 360.*deg);
     logicCore = new G4LogicalVolume(solidCore, polystyrene, "CoreLogical");
-    logicClad = new G4LogicalVolume(solidClad, PMMA, "CladLogical");
+    logicCladL1 = new G4LogicalVolume(solidCladL1, PMMA, "CladL1Logical");
+    logicCladL2 = new G4LogicalVolume(solidCladL2, FP, "CladL2Logical");
 
     for (size_t i=0;i<holePositions.size();++i) {
       G4ThreeVector pos = holePositions[i];
+      //std::cout<<" Fiber position: "<<pos.x()<<", "<<pos.y()<<", "<<pos.z()<<std::endl;
       // place cladding then core (so core is inner volume)
-      physFiberClad[i] = new G4PVPlacement(nullptr, pos, logicClad, "FiberClad_" + std::to_string(i), logicBox, false, 0);
+      physFiberCladL1[i] = new G4PVPlacement(nullptr, pos, logicCladL1, "FiberCladL1_" + std::to_string(i), logicBox, false, 0);
+      physFiberCladL2[i] = new G4PVPlacement(nullptr, pos, logicCladL2, "FiberCladL2_" + std::to_string(i), logicBox, false, 0);
       physFiberCore[i] = new G4PVPlacement(nullptr, pos, logicCore, "FiberCore_" + std::to_string(i), logicBox, false, 0);
     }
 
     logicCore->SetVisAttributes(new G4VisAttributes(G4Colour(1.0,1.0,0.0)));
-    logicClad->SetVisAttributes(new G4VisAttributes(G4Colour(0.8,0.8,0.8)));
+    logicCladL1->SetVisAttributes(new G4VisAttributes(G4Colour(0.8,0.8,0.8)));
+    logicCladL2->SetVisAttributes(new G4VisAttributes(G4Colour(0.8,0.8,0.8)));
 
 
     //Place Boxes
@@ -682,9 +695,13 @@ void MyDetectorConstruction::ConstructSDandField()
     sdManager->AddNewDetector(sensDet_fibercore);
     logicCore->SetSensitiveDetector(sensDet_fibercore);
 
-    MySensitiveDetector *sensDet_fiberclad = new MySensitiveDetector("FiberCladding");
-    sdManager->AddNewDetector(sensDet_fiberclad);
-    logicClad->SetSensitiveDetector(sensDet_fiberclad);    
+    MySensitiveDetector *sensDet_fibercladL1 = new MySensitiveDetector("FiberCladdingL1");
+    sdManager->AddNewDetector(sensDet_fibercladL1);
+    logicCladL1->SetSensitiveDetector(sensDet_fibercladL1);    
+
+    MySensitiveDetector *sensDet_fibercladL2 = new MySensitiveDetector("FiberCladdingL2");
+    sdManager->AddNewDetector(sensDet_fibercladL2);
+    logicCladL2->SetSensitiveDetector(sensDet_fibercladL2);
 
     MySensitiveDetector *sensDet_carbonframe = new MySensitiveDetector("CarbonFrame");
     sdManager->AddNewDetector(sensDet_carbonframe);

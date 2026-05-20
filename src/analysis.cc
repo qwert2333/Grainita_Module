@@ -42,10 +42,10 @@ MyRunAction::MyRunAction()
     man2->CreateNtupleDColumn("vecEdep", vecEdep );
     man2->CreateNtupleIColumn("vecNChren", vecNChren );
     man2->CreateNtupleIColumn("vecNScint", vecNScint );
-    //man2->CreateNtupleDColumn("stepPosx", stepPosx );
-    //man2->CreateNtupleDColumn("stepPosy", stepPosy );
-    //man2->CreateNtupleDColumn("stepPosz", stepPosz );
-    //man2->CreateNtupleDColumn("stepEn", stepEn );
+    man2->CreateNtupleDColumn("stepPosx", stepPosx );
+    man2->CreateNtupleDColumn("stepPosy", stepPosy );
+    man2->CreateNtupleDColumn("stepPosz", stepPosz );
+    man2->CreateNtupleDColumn("stepEn", stepEn );
 
     man2->FinishNtuple(0);    
 
@@ -127,10 +127,10 @@ MyRunAction::MyRunAction(MyPrimaryGenerator *PG): fPrimaryGen(PG)
     man2->CreateNtupleDColumn("vecEdep", vecEdep );
     man2->CreateNtupleIColumn("vecNChren", vecNChren );
     man2->CreateNtupleIColumn("vecNScint", vecNScint );
-    //man2->CreateNtupleDColumn("stepPosx", stepPosx );
-    //man2->CreateNtupleDColumn("stepPosy", stepPosy );
-    //man2->CreateNtupleDColumn("stepPosz", stepPosz );
-    //man2->CreateNtupleDColumn("stepEn", stepEn );
+    man2->CreateNtupleDColumn("stepPosx", stepPosx );
+    man2->CreateNtupleDColumn("stepPosy", stepPosy );
+    man2->CreateNtupleDColumn("stepPosz", stepPosz );
+    man2->CreateNtupleDColumn("stepEn", stepEn );
 
     man2->FinishNtuple(0);
 

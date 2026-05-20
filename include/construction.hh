@@ -65,7 +65,8 @@ private:
 
     G4int nfiber_x, nfiber_y, nseg_z;
     G4double fiber_Radius, fiber_lendth;
-    G4double cladding_thick;
+    G4double claddingL1_thick;
+    G4double claddingL2_thick;
 
     G4double carbonframe_thick;
 
@@ -80,7 +81,8 @@ private:
     G4LogicalVolume   *logicBox;
     G4LogicalVolume   *logicCrystal;
     G4LogicalVolume   *logicCore;
-    G4LogicalVolume   *logicClad;
+    G4LogicalVolume   *logicCladL1;
+    G4LogicalVolume   *logicCladL2;
     G4LogicalVolume   *logicFrame;
     G4LogicalVolume   *logicPMT;
 
@@ -88,7 +90,8 @@ private:
     G4VPhysicalVolume  *physWorld;
     G4VPhysicalVolume  *physBox;
     //G4VPhysicalVolume  **physCrystal;
-    G4VPhysicalVolume  **physFiberClad;
+    G4VPhysicalVolume  **physFiberCladL1;
+    G4VPhysicalVolume  **physFiberCladL2;
     G4VPhysicalVolume  **physFiberCore;
     G4VPhysicalVolume  *physFrame;
     G4VPhysicalVolume  *physPMT;
