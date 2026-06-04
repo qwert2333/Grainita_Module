@@ -44,14 +44,24 @@ public:
     void SetBoxNum( G4int num ) { nbox_x = num; nbox_y = num; }
     void SetFiberNum( G4int num ) { nfiber_x = num; nfiber_y = num; }
     void SetZSeg( G4int num ) { nseg_z = num; }
+    void SetResponseX0( G4double x0 ) { response_x0 = x0; }
+    void SetAttLength( G4double length ) { att_length = length; }
+    void SetResponseSlope( G4double slope ) { response_slope = slope; }
+    void SetResponseIntercept( G4double intercept ) { response_intercept = intercept; }
+    void SetReflectCoeff( G4double coeff ) { reflect_coeff = coeff; }
 
-    G4double GetPitchSize() const { return 2.*xtal_x/nbox_x/nfiber_x; }
+    G4double GetPitchSize() const { return 2.*(xtal_x/nbox_x - carbonframe_thick)/nfiber_x; }
     G4int GetFiberNum() const {return nfiber_x; }
+    G4double GetResponseX0() const { return response_x0; }
+    G4double GetAttLength() const { return att_length; }
+    G4double GetResponseSlope() const { return response_slope; }
+    G4double GetResponseIntercept() const { return response_intercept; }
+    G4double GetReflectCoeff() const { return reflect_coeff; }
 
 private:
-    //std::string targetMaterial;  // ✅ Holds the selected material
-    //G4String targetMaterialName;  // ✅ Stores the selected material
-    G4GenericMessenger *fMessenger;  // ✅ Messenger for UI commands
+    //std::string targetMaterial;  // Holds the selected material
+    //G4String targetMaterialName;  // Stores the selected material
+    G4GenericMessenger *fMessenger;  // Messenger for UI commands
     //G4GenericMessenger *fMessengerCMOS;
     //G4ThreeVector fCMOSPosition;
     //G4double gpositionRing ;
@@ -72,6 +82,12 @@ private:
 
     G4double pmtRadius;
     G4double pmtThickness;
+
+    G4double response_x0;
+    G4double att_length;
+    G4double response_slope;
+    G4double response_intercept;
+    G4double reflect_coeff;
 
     G4Box       *solidWorld;
     //G4Tubs    *solidSwYMCPsurface;
@@ -132,4 +148,3 @@ private:
 };
 
 #endif
-

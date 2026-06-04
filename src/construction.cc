@@ -72,6 +72,12 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
     pmtRadius = 80.*mm;
     pmtThickness = 1.*mm;
 
+    response_x0 = 0.856*mm;
+    att_length = 3.4*mm;
+    response_slope = 0.93;
+    response_intercept = 0.206;
+    reflect_coeff = 0.9;
+
     fMessenger->DeclareMethodWithUnit("ModuleSize", "mm", &MyDetectorConstruction::SetModuleSize)
         .SetGuidance("Set module transverse size")
         .SetParameterName("moduleSize", true)
@@ -95,6 +101,31 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
     fMessenger->DeclareMethod("ZSegNum", &MyDetectorConstruction::SetZSeg)
         .SetGuidance("Set Z direction segmentation")
         .SetParameterName("ZSegNum", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethodWithUnit("ResponseX0", "mm", &MyDetectorConstruction::SetResponseX0)
+        .SetGuidance("Set response transition distance")
+        .SetParameterName("responseX0", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethodWithUnit("AttLength", "mm", &MyDetectorConstruction::SetAttLength)
+        .SetGuidance("Set attenuation length")
+        .SetParameterName("attLength", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethod("ResponseSlope", &MyDetectorConstruction::SetResponseSlope)
+        .SetGuidance("Set linear response slope below ResponseX0")
+        .SetParameterName("responseSlope", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethod("ResponseIntercept", &MyDetectorConstruction::SetResponseIntercept)
+        .SetGuidance("Set linear response intercept below ResponseX0")
+        .SetParameterName("responseIntercept", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethod("ReflectCoeff", &MyDetectorConstruction::SetReflectCoeff)
+        .SetGuidance("Set edge reflection coefficient")
+        .SetParameterName("reflectCoeff", true)
         .SetStates(G4State_PreInit, G4State_Idle);
 
 }
@@ -708,4 +739,3 @@ void MyDetectorConstruction::ConstructSDandField()
     logicFrame->SetSensitiveDetector(sensDet_carbonframe);
 
 }
-
