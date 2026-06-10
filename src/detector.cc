@@ -18,11 +18,13 @@ MySensitiveDetector::MySensitiveDetector(G4String name)
       fAttLength(3.4),
       fpitch(7.),
       fIdMax(24),
+      fIdBase(100),
       fResponseX0(0.856),
       fResponseSlope(0.93),
       fResponseIntercept(0.206),
       fResponseNorm(1. / std::exp(-fResponseX0 / fAttLength)),
-      fReflectCoeff(0.9) {
+      fReflectCoeff(0.9),
+      fApplyLightResponse(true) {
   collectionName.insert(name + "_hits");
 }
 
@@ -101,12 +103,14 @@ void MySensitiveDetector::Initialize(G4HCofThisEvent *hitsCE){
       G4RunManager::GetRunManager()->GetUserDetectorConstruction());
   if (detector) {
       fIdMax = detector->GetFiberNum();
+      fIdBase = detector->GetCellIDBase();
       fpitch = detector->GetPitchSize() / mm;
       fResponseX0 = detector->GetResponseX0() / mm;
       fAttLength = detector->GetAttLength() / mm;
       fResponseSlope = detector->GetResponseSlope();
       fResponseIntercept = detector->GetResponseIntercept();
       fReflectCoeff = detector->GetReflectCoeff();
+      fApplyLightResponse = detector->GetApplyLightResponse();
       fResponseNorm = 1. / std::exp(-fResponseX0 / fAttLength);
   }
 
@@ -150,18 +154,10 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
     //G4int globalID = 1e8*boxID + cellID;
     G4int globalID = cellID;
 
-    // Mannually define the hit and cellID from global position 
-    // WARNING: hard-coded to 1 mm x-y segmentation here!
-    //G4int idx = (int)(pos.x()+500.);
-    //G4int idy = (int)(pos.y()+500.);
-    //G4int globalID = 1000*idy + idx; 
-
-
-    // For attenuation & transverse light cross talk effect: each step create 5*5 hits. 
-    // WARNING: hard-coded cellid coding. 
-    G4int idx = cellID%100;
-    G4int idy = (cellID / 100) % 100;
-    G4int idz = cellID / 10000;
+    // For attenuation & transverse light cross talk effect: each step creates 5*5 hits.
+    G4int idx = cellID % fIdBase;
+    G4int idy = (cellID / fIdBase) % fIdBase;
+    G4int idz = cellID / (fIdBase * fIdBase);
     //std::cout<<"  Raw cellID: "<<cellID<<", decoded cellID: "<<idx<<", "<<idy<<", "<<idz<<std::endl;
     //std::cout<<"  Make lookup table for neighbor cells "<<std::endl;
 
@@ -176,22 +172,24 @@ G4bool MySensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *ROhis
     std::vector<G4int> cellIDvec;
     std::vector<G4double> responseVec; 
     cellIDvec.push_back(cellID);
-    responseVec.push_back(AttenuatedResponse(pos.x(), pos.y(), volPos.x(), volPos.y()));
-    for(int i=-2; i<=2; i++ ){
-      if(idx+i<1 || idx+i>fIdMax) continue;
-      for(int j=-2; j<=2; j++ ){
-        if(idy+j<1 || idy+j>fIdMax) continue;
-        if(i==0 && j==0) continue;
+    responseVec.push_back(fApplyLightResponse ? AttenuatedResponse(pos.x(), pos.y(), volPos.x(), volPos.y()) : 1.);
+    if (fApplyLightResponse) {
+      for(int i=-2; i<=2; i++ ){
+        if(idx+i<1 || idx+i>fIdMax) continue;
+        for(int j=-2; j<=2; j++ ){
+          if(idy+j<1 || idy+j>fIdMax) continue;
+          if(i==0 && j==0) continue;
 
-        G4int neighborID = idz*10000 + (idy+j)*100 + idx+i;
-        cellIDvec.push_back(neighborID);
-        G4double neighborX = volPos.x() + i * fpitch;
-        G4double neighborY = volPos.y() + j * fpitch;
-        G4double response = AttenuatedResponse(pos.x(), pos.y(), neighborX, neighborY); 
-        responseVec.push_back(response);
+          G4int neighborID = idz * fIdBase * fIdBase + (idy + j) * fIdBase + idx + i;
+          cellIDvec.push_back(neighborID);
+          G4double neighborX = volPos.x() + i * fpitch;
+          G4double neighborY = volPos.y() + j * fpitch;
+          G4double response = AttenuatedResponse(pos.x(), pos.y(), neighborX, neighborY);
+          responseVec.push_back(response);
 
-        // std::cout<<"    Neighbor ("<<i<<", "<<j<<"): cellID "<<neighborID<<", position ("
-        // <<neighborX<<", "<<neighborY<<", "<<"), response (non-uniformed): "<<response<<std::endl;
+          // std::cout<<"    Neighbor ("<<i<<", "<<j<<"): cellID "<<neighborID<<", position ("
+          // <<neighborX<<", "<<neighborY<<", "<<"), response (non-uniformed): "<<response<<std::endl;
+        }
       }
     }
 

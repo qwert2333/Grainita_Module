@@ -41,6 +41,16 @@ MyDetectorConstruction::MyDetectorConstruction() : G4VUserDetectorConstruction()
 
 MyDetectorConstruction::~MyDetectorConstruction(){}
 
+G4int MyDetectorConstruction::GetCellIDBase() const
+{
+    G4int maxIndex = std::max(std::max(nfiber_x, nfiber_y), nseg_z);
+    G4int base = 10;
+    while (base <= maxIndex) {
+        base *= 10;
+    }
+    return base;
+}
+
 
 
 // =================================================================================
@@ -77,6 +87,7 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
     response_slope = 0.93;
     response_intercept = 0.206;
     reflect_coeff = 0.9;
+    apply_light_response = true;
 
     fMessenger->DeclareMethodWithUnit("ModuleSize", "mm", &MyDetectorConstruction::SetModuleSize)
         .SetGuidance("Set module transverse size")
@@ -126,6 +137,11 @@ void MyDetectorConstruction::DefineDim(G4GenericMessenger* fMessenger)
     fMessenger->DeclareMethod("ReflectCoeff", &MyDetectorConstruction::SetReflectCoeff)
         .SetGuidance("Set edge reflection coefficient")
         .SetParameterName("reflectCoeff", true)
+        .SetStates(G4State_PreInit, G4State_Idle);
+
+    fMessenger->DeclareMethod("ApplyLightResponse", &MyDetectorConstruction::SetApplyLightResponse)
+        .SetGuidance("Enable transverse light-response attenuation and neighbor-cell cross talk")
+        .SetParameterName("applyLightResponse", true)
         .SetStates(G4State_PreInit, G4State_Idle);
 
 }
@@ -356,7 +372,7 @@ G4Material* MyDetectorConstruction::MakeFastFloat() {
     LiquidMixture->AddMaterial(Water, 0.25); // 25 wt% water
     LiquidMixture->AddElement(W,      0.56); // 56 wt% tungsten
     LiquidMixture->AddElement(Na,     0.02); // 2 wt% sodium
-    LiquidMixture->AddElement(O,      0.16); // 16 wt% additional oxygen
+    LiquidMixture->AddElement(O,      0.17); // 17 wt% additional oxygen
 
 
     const G4int NUM = 4;
@@ -563,7 +579,10 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     */
 
 
-    // Define World
+    // Define World. Keep enough clearance for the module, fiber overhang, and PMT.
+    const G4double requiredHalfWorld =
+        std::max(std::max(xtal_x, xtal_y), fiber_lendth/2. + pmtThickness) + 100.*cm;
+    worldSize = std::max(worldSize, 2. * requiredHalfWorld);
     solidWorld = new G4Box("solidWorld", worldSize/2, worldSize/2, worldSize/2);
     logicWorld = new G4LogicalVolume(solidWorld, matWorld, "logicWorld");
     physWorld  = new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), logicWorld, "physWorld", 0, false, 0, true);
@@ -609,15 +628,14 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     G4double z0 = - ( (nseg_z-1)*cell_halfL*2 ) / 2.;
     std::cout<<"---   In each box: fiber (cell) number "<<nfiber_x<<" * "<<nfiber_y<<std::endl;
 
-    auto cellMax = std::to_string(std::max(std::max(nfiber_x, nfiber_y), nseg_z));
-    G4int cellMaxCount = pow(10, cellMax.length());
+    G4int cellIDBase = GetCellIDBase();
     G4int copyNo = 0; 
 
     for(int iz=0; iz<nseg_z; iz++){
       G4double zPos = z0 + iz * cell_halfL*2;
       for(int iy=0; iy<nfiber_y; iy++){
         G4double yPos = y0 + iy * cell_halfy*2;
-        copyNo = (iz + 1) * cellMaxCount * cellMaxCount + (iy + 1) * cellMaxCount;
+        copyNo = (iz + 1) * cellIDBase * cellIDBase + (iy + 1) * cellIDBase;
         for(int ix=0; ix<nfiber_x; ix++){
           copyNo++;
           G4double xPos = x0 + ix * cell_halfx*2;

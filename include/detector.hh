@@ -27,11 +27,13 @@ private:
     G4double fAttLength; 
     G4double fpitch; 
     G4int fIdMax;
+    G4int fIdBase;
     G4double fResponseX0;
     G4double fResponseSlope;
     G4double fResponseIntercept;
     G4double fResponseNorm;
     G4double fReflectCoeff;
+    G4bool fApplyLightResponse;
     std::map<G4int, G4int> cellIDCol; // <cellID, hit index>
     
 };

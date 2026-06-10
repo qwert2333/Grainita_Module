@@ -34,6 +34,7 @@
 
 #include "G4RunManager.hh"
 #include "G4AnalysisManager.hh"
+#include "G4Track.hh"
 
 
 // -- for MSC debug
@@ -84,6 +85,84 @@ int MyEventAction::get_counter_Scintillation() {
 
 void MyEventAction::increment_counter_Scintillation() {
     counter_Scintillation ++;
+}
+
+G4bool MyEventAction::IsEMParticle(const G4String& particleName) const
+{
+  return particleName == "gamma" || particleName == "e-" || particleName == "e+";
+}
+
+G4bool MyEventAction::IsNeutralMeson(const G4String& particleName) const
+{
+  return particleName == "pi0" || particleName == "eta" || particleName == "eta_prime";
+}
+
+G4bool MyEventAction::IsEMComponentTrack(const G4Track* track)
+{
+  if (!track) return false;
+
+  const G4int trackID = track->GetTrackID();
+  const G4String particleName = track->GetParticleDefinition()->GetParticleName();
+  trackParticleName[trackID] = particleName;
+
+  auto known = trackIsEM.find(trackID);
+  if (known != trackIsEM.end()) {
+    return known->second;
+  }
+
+  G4bool isEM = false;
+  const G4int parentID = track->GetParentID();
+  if (parentID == 0) {
+    isEM = IsEMParticle(particleName);
+  }
+  else {
+    auto parentEM = trackIsEM.find(parentID);
+    if (parentEM != trackIsEM.end() && parentEM->second) {
+      isEM = true;
+    }
+    else {
+      auto parentName = trackParticleName.find(parentID);
+      if (parentName != trackParticleName.end()) {
+        isEM = IsNeutralMeson(parentName->second) && IsEMParticle(particleName);
+      }
+    }
+  }
+
+  trackIsEM[trackID] = isEM;
+  return isEM;
+}
+
+void MyEventAction::RegisterSecondaryTrack(const G4Track* parent, const G4Track* secondary)
+{
+  if (!parent || !secondary) return;
+
+  const G4int parentID = parent->GetTrackID();
+  const G4int secondaryID = secondary->GetTrackID();
+  const G4String parentName = parent->GetParticleDefinition()->GetParticleName();
+  const G4String secondaryName = secondary->GetParticleDefinition()->GetParticleName();
+
+  trackParticleName[parentID] = parentName;
+  trackParticleName[secondaryID] = secondaryName;
+
+  const G4bool parentEM = IsEMComponentTrack(parent);
+  const G4bool secondaryEM = parentEM || (IsNeutralMeson(parentName) && IsEMParticle(secondaryName));
+  trackIsEM[secondaryID] = secondaryEM;
+}
+
+void MyEventAction::AddCrystalTruthEdep(const G4Track* track, G4double edep)
+{
+  if (edep <= 0.) return;
+  truthEdepCrystalTotal += edep;
+  if (IsEMComponentTrack(track)) {
+    truthEdepCrystalEM += edep;
+  }
+}
+
+void MyEventAction::AddLeakageEnergy(G4double energy)
+{
+  if (energy <= 0.) return;
+  leakageEnergy += energy;
+  leakageNParticles++;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -214,6 +293,12 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
    man5->FillNtupleIColumn( ntupleID, idx, Nph_Scint);  idx ++;
    man5->FillNtupleIColumn( ntupleID, idx, counter_Cerenkov); idx ++;
    man5->FillNtupleIColumn( ntupleID, idx, counter_Scintillation);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, truthEdepCrystalTotal); idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, truthEdepCrystalEM); idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, truthEdepCrystalTotal - truthEdepCrystalEM); idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, truthEdepCrystalTotal > 0. ? truthEdepCrystalEM / truthEdepCrystalTotal : -1.); idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, leakageEnergy); idx ++;
+   man5->FillNtupleIColumn( ntupleID, idx, leakageNParticles); idx ++;
 
    man5->AddNtupleRow( ntupleID);
 
@@ -237,9 +322,14 @@ void MyEventAction::ResetEventData()
   EdepCarbonFrame = 0.;
   Nph_Cherenkov = 0;
   Nph_Scint = 0;
+  truthEdepCrystalTotal = 0.;
+  truthEdepCrystalEM = 0.;
+  leakageEnergy = 0.;
+  leakageNParticles = 0;
+  trackIsEM.clear();
+  trackParticleName.clear();
 
   counter_Scintillation = 0;
   counter_Cerenkov = 0;
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

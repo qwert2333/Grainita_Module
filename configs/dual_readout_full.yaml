@@ -1,0 +1,45 @@
+{
+  "base_seed1": 2077,
+  "base_seed2": 1010,
+  "threads": 8,
+  "cut": "0.1 mm",
+  "run_verbose": 1,
+  "event_verbose": 0,
+  "tracking_verbose": 0,
+  "gps_position": "0.5 0.5 -150 cm",
+  "gps_halfx": "0. cm",
+  "gps_halfy": "0. cm",
+  "detector": {
+    "module_size": "1 m",
+    "module_depth": "2 m",
+    "box_num": 1,
+    "fiber_num": 24,
+    "z_seg_num": 1,
+    "response_x0": "0.856 mm",
+    "att_length": "3.4 mm",
+    "response_slope": 0.93,
+    "response_intercept": 0.206,
+    "reflect_coeff": 0.9,
+    "apply_light_response": false
+  },
+  "output_dirs": {
+    "macros": "outputs/dual_readout/macros",
+    "root": "outputs/dual_readout/root",
+    "tables": "outputs/dual_readout/tables",
+    "plots": "outputs/dual_readout/plots"
+  },
+  "samples": [
+    {
+      "role": "electron",
+      "particle": "e-",
+      "energies_gev": [1, 2, 5, 10, 20],
+      "events": 2000
+    },
+    {
+      "role": "hadron",
+      "particle": "pi-",
+      "energies_gev": [1, 2, 5, 10, 20],
+      "events": 2000
+    }
+  ]
+}

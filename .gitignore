@@ -34,14 +34,19 @@ build/
 *.a
 *.lib
 
-# Executables
+# Executables and generated data
 *.exe
 *.out
 *.app
 *.root
+outputs/
+
+# Python caches
+__pycache__/
 
 # debug information files
 *.dwo
 
 # temporary files
 *.swp
+.DS_Store

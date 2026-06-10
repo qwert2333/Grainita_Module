@@ -34,13 +34,52 @@
 #include "globals.hh"
 
 #include "G4Track.hh"
+#include "G4ParticleDefinition.hh"
+#include "G4StepPoint.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4VTouchable.hh"
 
 #include "G4RunManager.hh"
 #include "G4AnalysisManager.hh"
 
+#include <cstdlib>
 #include <vector>
 #include <string>
+
+namespace {
+
+G4bool IsNeutrino(const G4ParticleDefinition* particleDefinition)
+{
+        if (!particleDefinition) return false;
+        const G4int pdg = std::abs(particleDefinition->GetPDGEncoding());
+        return pdg == 12 || pdg == 14 || pdg == 16;
+}
+
+G4bool TouchableContainsPhysFrame(const G4StepPoint* point)
+{
+        if (!point) return false;
+        const G4VTouchable* touchable = point->GetTouchable();
+        if (!touchable) return false;
+
+        const G4int depth = touchable->GetHistoryDepth();
+        for (G4int i = 0; i <= depth; ++i) {
+                G4VPhysicalVolume* volume = touchable->GetVolume(i);
+                if (volume && volume->GetName() == "physFrame") {
+                        return true;
+                }
+        }
+        return false;
+}
+
+G4bool IsCrystalStep(const G4Step* step)
+{
+        if (!step || !step->GetPreStepPoint()) return false;
+        G4VPhysicalVolume* volume = step->GetPreStepPoint()->GetPhysicalVolume();
+        return volume && volume->GetLogicalVolume() && volume->GetLogicalVolume()->GetName() == "cellWithHole";
+}
+
+}
 
 
 
@@ -85,6 +124,11 @@ void MySteppingAction::UserSteppingAction(const G4Step* step)
         G4double edep = stepEnergyDeposit;
         G4double nonIonizingEnergyDeposit  = step->GetNonIonizingEnergyDeposit() /MeV ;
 
+        fEventAction->IsEMComponentTrack(aTrack);
+        if (particleName != "opticalphoton" && IsCrystalStep(step)) {
+                fEventAction->AddCrystalTruthEdep(aTrack, stepEnergyDeposit);
+        }
+
         G4double stepLength         = step->GetStepLength()         /mm;
         G4double dEdx               = stepEnergyDeposit / stepLength;
 
@@ -96,6 +140,12 @@ void MySteppingAction::UserSteppingAction(const G4Step* step)
         double zvtx = trackVertex.z() ;
 
         const G4StepPoint* pPost = step->GetPostStepPoint();
+        const G4bool insideCalorimeterPre = TouchableContainsPhysFrame(step->GetPreStepPoint());
+        const G4bool insideCalorimeterPost = TouchableContainsPhysFrame(pPost);
+        if (insideCalorimeterPre && !insideCalorimeterPost && particleName != "opticalphoton" && !IsNeutrino(particleDefinition)) {
+                fEventAction->AddLeakageEnergy(aTrack->GetTotalEnergy() / MeV);
+        }
+
         const G4VProcess* proc = pPost->GetProcessDefinedStep();
         G4String procName = (proc) ? proc->GetProcessName() : "Unknown";
 
@@ -167,6 +217,7 @@ void MySteppingAction::UserSteppingAction(const G4Step* step)
         G4String leadingSecName="None";
         for (int isec=0; isec < nSecondaries; isec++) {
                 const G4Track* atrack = secondaries -> at(isec);
+                fEventAction->RegisterSecondaryTrack(aTrack, atrack);
                 G4double esec = atrack -> GetTotalEnergy() / MeV;
                 EnergySecondaries += esec ;
                 if (esec > EleadingSec) {
@@ -257,4 +308,3 @@ void MySteppingAction::UserSteppingAction(const G4Step* step)
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

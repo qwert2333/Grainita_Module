@@ -1,6 +1,6 @@
-/random/setSeeds 123456 789012
+/random/setSeeds 2077 1010
 
-/run/numberOfThreads 5
+/run/numberOfThreads 1
 
 /run/setCut 0.1 mm
 
@@ -9,26 +9,30 @@
 /tracking/verbose 0
 
 # Detector construction
-/detector/ModuleSize 8.45 cm
-/detector/ModuleDepth 40 cm
+/detector/ModuleSize 1 m
+/detector/ModuleDepth 2 m
 /detector/BoxNum 1
-/detector/fiberNum 24   # pitch size 20*2/4/14 ~ 0.7 cm. 
+/detector/fiberNum 24
 /detector/ZSegNum 1
+/detector/ResponseX0 0.856 mm
+/detector/AttLength 3.4 mm
+/detector/ResponseSlope 0.93
+/detector/ResponseIntercept 0.206
+/detector/ReflectCoeff 0.9
+/detector/ApplyLightResponse false
 
 /run/initialize
 
 # Set particle gun
-/gps/particle mu-
-/gps/energy 10 GeV
+/gps/particle pi-
+/gps/energy 5 GeV
 /gps/direction 0 0 1
 /gps/pos/type Plane
 /gps/pos/shape Square
-/gps/pos/centre 0 0 -50 cm
-/gps/pos/halfx 2. cm
-/gps/pos/halfy 2. cm
+/gps/pos/centre 0.5 0.5 -150 cm
+/gps/pos/halfx 0. cm
+/gps/pos/halfy 0. cm
 
 
 # Run event number
-/run/beamOn 1000
-
-
+/run/beamOn 10

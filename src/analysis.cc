@@ -35,6 +35,12 @@ MyRunAction::MyRunAction()
     man2->CreateNtupleIColumn("Nph_Scintillation");
     man2->CreateNtupleIColumn("counter_Cerenkov");
     man2->CreateNtupleIColumn("counter_Scintillation");
+    man2->CreateNtupleDColumn("truthEdepCrystalTotal");
+    man2->CreateNtupleDColumn("truthEdepCrystalEM");
+    man2->CreateNtupleDColumn("truthEdepCrystalNonEM");
+    man2->CreateNtupleDColumn("truthFemCrystal");
+    man2->CreateNtupleDColumn("leakageEnergy");
+    man2->CreateNtupleIColumn("leakageNParticles");
     man2->CreateNtupleDColumn("Edep_Layer", Edep_Layer);
     man2->CreateNtupleIColumn("Nph_Cherenkov_Layer", Nph_Cherenkov_Layer);
     man2->CreateNtupleIColumn("Nph_Scint_Layer", Nph_Scint_Layer);
@@ -120,6 +126,12 @@ MyRunAction::MyRunAction(MyPrimaryGenerator *PG): fPrimaryGen(PG)
     man2->CreateNtupleIColumn("Nph_Scintillation");
     man2->CreateNtupleIColumn("counter_Cerenkov");
     man2->CreateNtupleIColumn("counter_Scintillation");
+    man2->CreateNtupleDColumn("truthEdepCrystalTotal");
+    man2->CreateNtupleDColumn("truthEdepCrystalEM");
+    man2->CreateNtupleDColumn("truthEdepCrystalNonEM");
+    man2->CreateNtupleDColumn("truthFemCrystal");
+    man2->CreateNtupleDColumn("leakageEnergy");
+    man2->CreateNtupleIColumn("leakageNParticles");
     man2->CreateNtupleDColumn("Edep_Layer", Edep_Layer);
     man2->CreateNtupleIColumn("Nph_Cherenkov_Layer", Nph_Cherenkov_Layer);
     man2->CreateNtupleIColumn("Nph_Scint_Layer", Nph_Scint_Layer);
@@ -274,4 +286,3 @@ void MyRunAction::ResetEventData()
   stepEn.clear();
 
 }
-

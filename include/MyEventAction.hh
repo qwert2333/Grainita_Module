@@ -34,9 +34,11 @@
 #include "G4String.hh"
 #include "analysis.hh"
 
+#include <map>
 #include <vector>
 
 class G4Event;
+class G4Track;
 
 
 /// Event action class
@@ -63,9 +65,17 @@ class MyEventAction : public G4UserEventAction
     int get_counter_Scintillation();
     void increment_counter_Scintillation();
 
+    G4bool IsEMComponentTrack(const G4Track* track);
+    void RegisterSecondaryTrack(const G4Track* parent, const G4Track* secondary);
+    void AddCrystalTruthEdep(const G4Track* track, G4double edep);
+    void AddLeakageEnergy(G4double energy);
+
     void ResetEventData(); 
 
     private :
+    G4bool IsEMParticle(const G4String& particleName) const;
+    G4bool IsNeutralMeson(const G4String& particleName) const;
+
     MyRunAction* fRunAction; 
     G4int fHitCollID[5]; 
     G4int eventID;
@@ -83,6 +93,13 @@ class MyEventAction : public G4UserEventAction
     G4double EdepCarbonFrame;
     G4int Nph_Cherenkov;
     G4int Nph_Scint;
+
+    G4double truthEdepCrystalTotal;
+    G4double truthEdepCrystalEM;
+    G4double leakageEnergy;
+    G4int leakageNParticles;
+    std::map<G4int, G4bool> trackIsEM;
+    std::map<G4int, G4String> trackParticleName;
 
     int counter_Cerenkov;
     int counter_Scintillation ;

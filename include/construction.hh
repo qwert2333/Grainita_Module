@@ -49,9 +49,12 @@ public:
     void SetResponseSlope( G4double slope ) { response_slope = slope; }
     void SetResponseIntercept( G4double intercept ) { response_intercept = intercept; }
     void SetReflectCoeff( G4double coeff ) { reflect_coeff = coeff; }
+    void SetApplyLightResponse( G4bool apply ) { apply_light_response = apply; }
 
     G4double GetPitchSize() const { return 2.*(xtal_x/nbox_x - carbonframe_thick)/nfiber_x; }
     G4int GetFiberNum() const {return nfiber_x; }
+    G4int GetCellIDBase() const;
+    G4bool GetApplyLightResponse() const { return apply_light_response; }
     G4double GetResponseX0() const { return response_x0; }
     G4double GetAttLength() const { return att_length; }
     G4double GetResponseSlope() const { return response_slope; }
@@ -88,6 +91,7 @@ private:
     G4double response_slope;
     G4double response_intercept;
     G4double reflect_coeff;
+    G4bool apply_light_response;
 
     G4Box       *solidWorld;
     //G4Tubs    *solidSwYMCPsurface;
