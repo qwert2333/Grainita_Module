@@ -12,6 +12,7 @@
 #include "G4GenericMessenger.hh"
 #include "detector.hh"
 #include "G4UserLimits.hh"
+#include <algorithm>
 #include <string>  // ✅ Ensure std::string is included
 #include "G4GenericMessenger.hh"  // ✅ Include Geant4 Messenger
 #include "G4ThreeVector.hh"
@@ -52,6 +53,12 @@ public:
 
     G4double GetPitchSize() const { return 2.*(xtal_x/nbox_x - carbonframe_thick)/nfiber_x; }
     G4int GetFiberNum() const {return nfiber_x; }
+    G4int GetCellIDBase() const {
+        G4int maxIndex = std::max(std::max(nfiber_x, nfiber_y), nseg_z);
+        G4int base = 1;
+        while (base <= maxIndex) base *= 10;
+        return base;
+    }
     G4double GetResponseX0() const { return response_x0; }
     G4double GetAttLength() const { return att_length; }
     G4double GetResponseSlope() const { return response_slope; }

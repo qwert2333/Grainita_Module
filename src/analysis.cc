@@ -28,6 +28,7 @@ MyRunAction::MyRunAction()
     man2->CreateNtupleDColumn("MCtruth_pos_z");
 
     man2->CreateNtupleDColumn("EdepCrystal");
+    man2->CreateNtupleDColumn("EdepCrystalRaw");
     man2->CreateNtupleDColumn("EdepFiberCore");
     man2->CreateNtupleDColumn("EdepFiberClad");
     man2->CreateNtupleDColumn("EdepCarbonFrame");
@@ -40,6 +41,9 @@ MyRunAction::MyRunAction()
     man2->CreateNtupleIColumn("Nph_Scint_Layer", Nph_Scint_Layer);
     man2->CreateNtupleIColumn("vecCellID", vecCellID );
     man2->CreateNtupleDColumn("vecEdep", vecEdep );
+    man2->CreateNtupleDColumn("vecHitPosx", vecHitPosx );
+    man2->CreateNtupleDColumn("vecHitPosy", vecHitPosy );
+    man2->CreateNtupleDColumn("vecHitPosz", vecHitPosz );
     man2->CreateNtupleIColumn("vecNChren", vecNChren );
     man2->CreateNtupleIColumn("vecNScint", vecNScint );
     // man2->CreateNtupleDColumn("stepPosx", stepPosx );
@@ -113,6 +117,7 @@ MyRunAction::MyRunAction(MyPrimaryGenerator *PG): fPrimaryGen(PG)
     man2->CreateNtupleDColumn("MCtruth_pos_z");
 
     man2->CreateNtupleDColumn("EdepCrystal");
+    man2->CreateNtupleDColumn("EdepCrystalRaw");
     man2->CreateNtupleDColumn("EdepFiberCore");
     man2->CreateNtupleDColumn("EdepFiberClad");
     man2->CreateNtupleDColumn("EdepCarbonFrame");
@@ -125,6 +130,9 @@ MyRunAction::MyRunAction(MyPrimaryGenerator *PG): fPrimaryGen(PG)
     man2->CreateNtupleIColumn("Nph_Scint_Layer", Nph_Scint_Layer);
     man2->CreateNtupleIColumn("vecCellID", vecCellID );
     man2->CreateNtupleDColumn("vecEdep", vecEdep );
+    man2->CreateNtupleDColumn("vecHitPosx", vecHitPosx );
+    man2->CreateNtupleDColumn("vecHitPosy", vecHitPosy );
+    man2->CreateNtupleDColumn("vecHitPosz", vecHitPosz );
     man2->CreateNtupleIColumn("vecNChren", vecNChren );
     man2->CreateNtupleIColumn("vecNScint", vecNScint );
     // man2->CreateNtupleDColumn("stepPosx", stepPosx );
@@ -255,6 +263,7 @@ void MyRunAction::ResetEventData()
   MCtruth_pos_z = 0;
 
   EdepCrystal = 0.;
+  EdepCrystalRaw = 0.;
   EdepFiberCore = 0.;
   EdepFiberClad = 0.;
   EdepCarbonFrame = 0.;
@@ -266,6 +275,9 @@ void MyRunAction::ResetEventData()
   Nph_Scint_Layer.clear();
   vecCellID.clear();
   vecEdep.clear();
+  vecHitPosx.clear();
+  vecHitPosy.clear();
+  vecHitPosz.clear();
   vecNChren.clear();
   vecNScint.clear();
   stepPosx.clear();
@@ -274,4 +286,3 @@ void MyRunAction::ResetEventData()
   stepEn.clear();
 
 }
-

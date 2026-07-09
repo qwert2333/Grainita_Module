@@ -62,6 +62,7 @@ void MyEventAction::BeginOfEventAction(const G4Event* event) {
       fHitCollID[2] = sdManager->GetCollectionID("FiberCladdingL1_hits");
       fHitCollID[3] = sdManager->GetCollectionID("FiberCladdingL2_hits");
       fHitCollID[4] = sdManager->GetCollectionID("CarbonFrame_hits");
+      fHitCollID[5] = sdManager->GetCollectionID("CrystalModule_raw_hits");
   }
 
   if(!fRunAction)
@@ -125,25 +126,31 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
   EcalHitsCollection *FiberCladL1HitCollection = nullptr;
   EcalHitsCollection *FiberCladL2HitCollection = nullptr;
   EcalHitsCollection *CarbonFrameHitCollection = nullptr;
+  EcalHitsCollection *CrystalRawHitCollection = nullptr;
   if (hitsCE){
     CrystalHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[0]));
     FiberCoreHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[1]));
     FiberCladL1HitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[2]));
     FiberCladL2HitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[3]));
     CarbonFrameHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[4]));
+    CrystalRawHitCollection = (EcalHitsCollection *)(hitsCE->GetHC(fHitCollID[5]));
   }
+
+  // G4cout<< (float)CrystalHitCollection->entries() / (float)CrystalRawHitCollection->entries()<<G4endl;
 
   if(CrystalHitCollection){
     size_t n_hit = CrystalHitCollection->entries();
-    //G4cout << " Read Crystal hits: " << n_hit << G4endl;
+    // G4cout << " Read Crystal hits: " << n_hit << G4endl;
     for(size_t i=0; i<n_hit; i++){
       G4int cellID = (*CrystalHitCollection)[i]->GetCellID();
       EdepCrystal += (*CrystalHitCollection)[i]->GetEdep();
       Nph_Cherenkov += (*CrystalHitCollection)[i]->GetNphChren();
       Nph_Scint += (*CrystalHitCollection)[i]->GetNphScint();
+      auto hitPos = (*CrystalHitCollection)[i]->getPosition();
 
       fRunAction->Fill_vecCellID( (*CrystalHitCollection)[i]->GetCellID() );
       fRunAction->Fill_vecEdep(   (*CrystalHitCollection)[i]->GetEdep() );
+      fRunAction->Fill_vecPos(    hitPos.x(), hitPos.y(), hitPos.z()  );
       fRunAction->Fill_vecNChren( (*CrystalHitCollection)[i]->GetNphChren() );
       fRunAction->Fill_vecNScint( (*CrystalHitCollection)[i]->GetNphScint() );
     }
@@ -163,6 +170,14 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
     //G4cout << " Read Fiber Core Hits: " << n_hit << G4endl;
     for(size_t i=0; i<n_hit; i++){
       EdepFiberCore += (*FiberCoreHitCollection)[i]->GetEdep();
+    }
+  }
+
+  if(CrystalRawHitCollection){
+    size_t n_hit = CrystalRawHitCollection->entries();
+    // G4cout<< " Read Crystal Raw Hits: " << n_hit << G4endl;
+    for(size_t i=0; i<n_hit; i++){
+      EdepCrystalRaw += (*CrystalRawHitCollection)[i]->GetEdep();
     }
   }
 
@@ -207,6 +222,7 @@ void MyEventAction::EndOfEventAction(const G4Event* event)
    man5->FillNtupleDColumn( ntupleID, idx, MCtruth_pos_y);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, MCtruth_pos_z);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepCrystal);  idx ++;
+   man5->FillNtupleDColumn( ntupleID, idx, EdepCrystalRaw);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepFiberCore);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepFiberClad);  idx ++;
    man5->FillNtupleDColumn( ntupleID, idx, EdepCarbonFrame);  idx ++;
@@ -232,6 +248,7 @@ void MyEventAction::ResetEventData()
   MCtruth_pos_y = 0;
   MCtruth_pos_z = 0;
   EdepCrystal = 0.;
+  EdepCrystalRaw = 0.;
   EdepFiberCore = 0.;
   EdepFiberClad = 0.;
   EdepCarbonFrame = 0.;
@@ -242,4 +259,3 @@ void MyEventAction::ResetEventData()
   counter_Cerenkov = 0;
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-

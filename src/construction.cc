@@ -609,8 +609,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
     G4double z0 = - ( (nseg_z-1)*cell_halfL*2 ) / 2.;
     std::cout<<"---   In each box: fiber (cell) number "<<nfiber_x<<" * "<<nfiber_y<<std::endl;
 
-    auto cellMax = std::to_string(std::max(std::max(nfiber_x, nfiber_y), nseg_z));
-    G4int cellMaxCount = pow(10, cellMax.length());
+    G4int cellMaxCount = GetCellIDBase();
     G4int copyNo = 0; 
 
     for(int iz=0; iz<nseg_z; iz++){

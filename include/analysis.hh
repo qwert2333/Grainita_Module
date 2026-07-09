@@ -26,6 +26,11 @@ public:
     void Fill_Nph_Scint_Layer(G4int data) { Nph_Scint_Layer.push_back(data); }
     void Fill_vecCellID(G4int data) { vecCellID.push_back(data); }
     void Fill_vecEdep(G4double data) { vecEdep.push_back(data); }
+    void Fill_vecPos(G4double _x, G4double _y, G4double _z) {
+      vecHitPosx.push_back(_x);
+      vecHitPosy.push_back(_y);
+      vecHitPosz.push_back(_z);
+    }
     void Fill_vecNChren(G4int data) { vecNChren.push_back(data); }
     void Fill_vecNScint(G4int data) { vecNScint.push_back(data); }
     void Fill_stepPos(G4double _x, G4double _y, G4double _z) { 
@@ -50,6 +55,7 @@ private:
     G4double MCtruth_pos_y;
     G4double MCtruth_pos_z;
     G4double EdepCrystal;
+    G4double EdepCrystalRaw;
     G4double EdepFiberCore;
     G4double EdepFiberClad;
     G4double EdepCarbonFrame;
@@ -61,6 +67,9 @@ private:
     std::vector<G4int> Nph_Scint_Layer;
     std::vector<G4int> vecCellID;
     std::vector<G4double> vecEdep;
+    std::vector<G4double> vecHitPosx;
+    std::vector<G4double> vecHitPosy;
+    std::vector<G4double> vecHitPosz;
     std::vector<G4int> vecNChren;
     std::vector<G4int> vecNScint;
     std::vector<G4double> stepPosx;

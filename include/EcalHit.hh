@@ -21,6 +21,9 @@ public:
     void addEdep(G4double _en) { fEdep += _en; }
     G4double GetEdep() const { return fEdep; }
 
+    void setPosition(G4ThreeVector _pos)  { fPos = _pos; }
+    G4ThreeVector getPosition() const { return fPos; }
+
     void setNphScint(G4int _nph) { fNph_scint = _nph;}
     void addNphScint(G4int _nph) { fNph_scint += _nph; }
     G4double GetNphScint() const { return fNph_scint; }    
@@ -48,6 +51,7 @@ private:
     G4double fEdep;
     G4int fNph_scint;
     G4int fNph_cherenkov;
+    G4ThreeVector fPos; 
     std::vector<G4double> step_x;
     std::vector<G4double> step_y;
     std::vector<G4double> step_z;
